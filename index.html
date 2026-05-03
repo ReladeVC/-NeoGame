@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>NeoGame AI — Обучение созданию игр через нейросети</title>
+    <!-- Preconnect для улучшения загрузки шрифтов -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- SF Pro / Inter как современный аналог системного шрифта Apple -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 (Free Icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+            background-color: #ffffff;
+            color: #1d1d1f;
+            line-height: 1.4;
+            scroll-behavior: smooth;
+        }
+
+        /* Apple-inspired smooth corners, clean typography */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header / Navigation like Apple */
+        .navbar {
+            backdrop-filter: blur(20px);
+            background-color: rgba(255, 255, 255, 0.8);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 16px 0;
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-weight: 600;
+            font-size: 1.6rem;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #1d1d1f, #4a4a6a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo i {
+            background: none;
+            color: #0071e3;
+            font-size: 1.8rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #1d1d1f;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: #0071e3;
+        }
+
+        .btn-primary {
+            background-color: #0071e3;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 980px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary:hover {
+            background-color: #0077ed;
+            transform: scale(1.02);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #0071e3;
+            color: #0071e3;
+            padding: 8px 20px;
+            border-radius: 980px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .btn-outline:hover {
+            background: #0071e310;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 100px 0 80px;
+            text-align: center;
+        }
+
+        .hero-badge {
+            background: #e8f1ff;
+            color: #0071e3;
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            background: linear-gradient(135deg, #1d1d1f 0%, #3a3a4e 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            max-width: 900px;
+            margin: 0 auto 24px;
+        }
+
+        .hero p {
+            font-size: 1.35rem;
+            color: #6e6e73;
+            max-width: 700px;
+            margin: 0 auto 32px;
+            line-height: 1.4;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 60px;
+        }
+
+        /* Секция преимуществ (как Apple features grid) */
+        .features {
+            padding: 80px 0;
+            background-color: #fbfbfd;
+            border-radius: 32px;
+            margin: 20px 0;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            text-align: center;
+            margin-bottom: 56px;
+            color: #1d1d1f;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 40px;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 0 16px;
+        }
+
+        .feature-icon {
+            background: white;
+            width: 70px;
+            height: 70px;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.03);
+            font-size: 2rem;
+            color: #0071e3;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .feature-card p {
+            color: #6e6e73;
+            font-size: 1rem;
+            line-height: 1.4;
+        }
+
+        /* Как это работает - стиль Apple с иконками */
+        .how-it-works {
+            padding: 80px 0;
+        }
+
+        .steps {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 24px;
+            margin-top: 40px;
+        }
+
+        .step {
+            flex: 1;
+            min-width: 200px;
+            background: #fafafc;
+            border-radius: 28px;
+            padding: 32px 24px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .step-number {
+            font-weight: 700;
+            font-size: 2rem;
+            color: #0071e3;
+            margin-bottom: 16px;
+        }
+
+        .step h4 {
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+        }
+
+        /* Новая секция: примеры работ (портфолио игр) */
+        .portfolio {
+            padding: 80px 0;
+            background-color: #ffffff;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 40px;
+            margin-top: 20px;
+        }
+
+        .project-card {
+            background: #fbfbfd;
+            border-radius: 28px;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+            border: 1px solid #f0f0f2;
+        }
+
+        .project-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.12);
+            border-color: #e2e2e6;
+        }
+
+        .project-image {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background-color: #e9e9ef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .project-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .project-card:hover .project-image img {
+            transform: scale(1.02);
+        }
+
+        .project-info {
+            padding: 24px 24px 28px;
+            text-align: center;
+        }
+
+        .project-info h3 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: -0.01em;
+        }
+
+        .project-info p {
+            color: #6e6e73;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .game-btn {
+            background-color: transparent;
+            border: 1.5px solid #0071e3;
+            color: #0071e3;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .game-btn i {
+            font-size: 0.9rem;
+        }
+
+        .game-btn:hover {
+            background-color: #0071e3;
+            color: white;
+            transform: scale(1.02);
+        }
+
+        /* План обучения / цены (Apple style card) */
+        .pricing {
+            padding: 80px 0;
+            background-color: #ffffff;
+        }
+
+        .pricing-card {
+            max-width: 720px;
+            margin: 0 auto;
+            background: #fbfbfd;
+            border-radius: 32px;
+            padding: 48px 40px;
+            text-align: center;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.05);
+            border: 1px solid #e8e8ed;
+        }
+
+        .price {
+            font-size: 3.8rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin: 16px 0;
+        }
+
+        .price small {
+            font-size: 1.2rem;
+            font-weight: 400;
+            color: #6e6e73;
+        }
+
+        .pricing-features {
+            list-style: none;
+            margin: 32px 0;
+            text-align: left;
+            display: inline-block;
+        }
+
+        .pricing-features li {
+            margin: 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1rem;
+        }
+
+        .pricing-features i {
+            color: #0071e3;
+            width: 24px;
+        }
+
+        /* testimonial */
+        .testimonial {
+            background: #f5f5f7;
+            border-radius: 36px;
+            padding: 48px 32px;
+            margin: 40px 0 60px;
+            text-align: center;
+        }
+
+        .testimonial p {
+            font-size: 1.3rem;
+            font-style: normal;
+            font-weight: 500;
+            max-width: 700px;
+            margin: 0 auto 20px;
+            color: #1d1d1f;
+        }
+
+        .testimonial-author {
+            font-weight: 500;
+            color: #6e6e73;
+        }
+
+        /* CTA финал */
+        .cta-section {
+            background-color: #1d1d1f;
+            border-radius: 48px;
+            color: white;
+            padding: 72px 48px;
+            text-align: center;
+            margin: 60px 0 80px;
+        }
+
+        .cta-section h2 {
+            font-size: 2.6rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 20px;
+        }
+
+        .cta-section .btn-primary {
+            background-color: white;
+            color: #1d1d1f;
+            margin-top: 24px;
+            padding: 12px 32px;
+            font-size: 1.1rem;
+        }
+
+        .cta-section .btn-primary:hover {
+            background-color: #f5f5f7;
+        }
+
+        /* footer */
+        .footer {
+            padding: 32px 0 48px;
+            border-top: 1px solid #d2d2d6;
+            color: #6e6e73;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        /* modal (форма регистрации в стиле Apple) */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            max-width: 500px;
+            width: 90%;
+            border-radius: 32px;
+            padding: 32px;
+            text-align: center;
+            animation: fadeInUp 0.3s ease;
+            position: relative;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .modal-content h3 {
+            font-size: 1.8rem;
+            margin-bottom: 12px;
+        }
+        .modal .input-group {
+            margin: 20px 0;
+            text-align: left;
+        }
+        .modal input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid #c6c6c8;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: 0.2s;
+        }
+        .modal input:focus {
+            outline: none;
+            border-color: #0071e3;
+            box-shadow: 0 0 0 3px rgba(0,113,227,0.2);
+        }
+        .close-modal {
+            position: absolute;
+            top: 18px;
+            right: 24px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #8e8e93;
+        }
+        .success-message {
+            color: #28cd41;
+            font-weight: 500;
+            margin-top: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            .hero p {
+                font-size: 1.1rem;
+            }
+            .section-title {
+                font-size: 2rem;
+            }
+            .nav-links {
+                gap: 18px;
+            }
+            .cta-section {
+                padding: 48px 24px;
+            }
+            .cta-section h2 {
+                font-size: 1.8rem;
+            }
+            .projects-grid {
+                gap: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar apple style -->
+    <nav class="navbar">
+        <div class="container nav-content">
+            <div class="logo">
+                <i class="fas fa-brain"></i> 
+                <span>NeoGame AI</span>
+            </div>
+            <div class="nav-links">
+                <a href="#features">Возможности</a>
+                <a href="#howitworks">Как устроено</a>
+                <a href="#portfolio">Портфолио</a>
+                <a href="#pricing">Обучение</a>
+                <a href="#" id="openModalBtn" class="btn-primary">Записаться</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero section -->
+        <div class="container hero">
+            <div class="hero-badge">
+                <i class="fas fa-microchip"></i> Игровая революция с ИИ
+            </div>
+            <h1>Создавай игры с помощью нейросетей <br> без программирования</h1>
+            <p>Полный курс от идеи до релиза: генерация ассетов, кода, дизайна и сценариев через ChatGPT, Midjourney, Runway и другие AI-инструменты.</p>
+            <div class="hero-actions">
+                <a href="#" id="heroOpenModal" class="btn-primary">Начать обучение →</a>
+                <a href="#pricing" class="btn-outline">Узнать программу</a>
+            </div>
+        </div>
+
+        <!-- Features grid -->
+        <div class="container features" id="features">
+            <h2 class="section-title">Почему обучение через AI — новый стандарт</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-robot"></i></div>
+                    <h3>Код на автопилоте</h3>
+                    <p>Генерируй игровые механики на Python, C# или GDScript с нейросетями — объясняем как правильно промптить.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-palette"></i></div>
+                    <h3>Арт и концепты за минуты</h3>
+                    <p>Midjourney, Stable Diffusion: создавай текстуры, персонажей, фоны и спрайты на профессиональном уровне.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-vr-cardboard"></i></div>
+                    <h3>Дизайн уровней + AI</h3>
+                    <p>Генерация дизайн-документов, сюжетных веток, баланса — используй LLM как со-геймдизайнера.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                    <h3>Монетизация и запуск</h3>
+                    <p>Упаковка игры, маркетинг с помощью AI, публикация в Steam / мобильные магазины.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Как это работает -->
+        <div class="container how-it-works" id="howitworks">
+            <h2 class="section-title">Курс «NeoGame»: 4 недели практики</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">01</div>
+                    <h4>Промпт-инжиниринг для игр</h4>
+                    <p>Осваиваешь систему составления запросов, получаешь работающие скрипты и концепты.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">02</div>
+                    <h4>Сборка прототипа</h4>
+                    <p>С нуля создаешь свою первую мини-игру: управление, механики, интерфейс — всё через AI.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">03</div>
+                    <h4>Геймдизайн + нейросети</h4>
+                    <p>Генерация уровней, баланса, сюжетов и диалогов. Как ускорить итерации в 10 раз.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">04</div>
+                    <h4>Защита проекта и профиль</h4>
+                    <p>Публикуешь игру в портфолио + получаешь сертификат и поддержку в комьюнити.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- НОВАЯ СЕКЦИЯ: ПРИМЕРЫ РАБОТ (3 картинки + 3 ссылки с кнопками "Играть") -->
+        <div class="container portfolio" id="portfolio">
+            <h2 class="section-title">Реальные проекты студентов <br><span style="font-size: 1rem; color:#6e6e73; font-weight: normal;">Создано с помощью нейросетей всего за 2 недели</span></h2>
+            <div class="projects-grid">
+                <!-- Проект 1: Dogs -->
+                <div class="project-card">
+                    <div class="project-image">
+                        <img src="3.png" alt="Игра Dogs — создано через AI" onerror="this.onerror=null; this.src='https://placehold.co/600x400/e8e8ed/8e8e93?text=Dogs+Game'">
+                    </div>
+                    <div class="project-info">
+                        <h3>Dogs: AI Runner</h3>
+                        <p>Аркадный раннер с милыми собаками, генерация уровней через нейросети.</p>
+                        <a href="https://vibecodbyenemy.github.io/Dogs/" target="_blank" class="game-btn">
+                            <i class="fas fa-gamepad"></i> Играть
+                        </a>
+                    </div>
+                </div>
+                <!-- Проект 2: Anime -->
+                <div class="project-card">
+                    <div class="project-image">
+                        <img src="2.png" alt="Игра Anime — нейросетевой визуальный стиль" onerror="this.onerror=null; this.src='https://placehold.co/600x400/e8e8ed/8e8e93?text=Anime+Adventure'">
+                    </div>
+                    <div class="project-info">
+                        <h3>Anime: Visual Novel</h3>
+                        <p>Интерактивная история с персонажами, сгенерированными с помощью Midjourney.</p>
+                        <a href="https://vibecodbyenemy.github.io/Anime/" target="_blank" class="game-btn">
+                            <i class="fas fa-gamepad"></i> Играть
+                        </a>
+                    </div>
+                </div>
+                <!-- Проект 3: Stack Attack -->
+                <div class="project-card">
+                    <div class="project-image">
+                        <img src="1.png" alt="Stack Attack — динамическая головоломка" onerror="this.onerror=null; this.src='https://placehold.co/600x400/e8e8ed/8e8e93?text=Stack+Attack'">
+                    </div>
+                    <div class="project-info">
+                        <h3>Stack Attack</h3>
+                        <p>Головоломка на ловкость и реакцию. Код на 90% написан ChatGPT.</p>
+                        <a href="https://vibecodbyenemy.github.io/stackattack/" target="_blank" class="game-btn">
+                            <i class="fas fa-gamepad"></i> Играть
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <p style="text-align: center; margin-top: 40px; color: #6e6e73; font-size: 0.9rem;">⭐ Реальные игровые проекты, созданные выпускниками NeoGame AI с нуля</p>
+        </div>
+
+        <!-- pricing block (тариф) -->
+        <div class="container pricing" id="pricing">
+            <div class="pricing-card">
+                <h3 style="font-weight: 600;">Стандарт — «AI Game Dev Pro»</h3>
+                <div class="price">$290 <small>или 5 платежей по $67</small></div>
+                <ul class="pricing-features">
+                    <li><i class="fas fa-check-circle"></i> 30+ часов видеоуроков и практических заданий</li>
+                    <li><i class="fas fa-check-circle"></i> Доступ к закрытому AI-комьюнити разработчиков</li>
+                    <li><i class="fas fa-check-circle"></i> Библиотека промптов для Unity, Godot, Unreal</li>
+                    <li><i class="fas fa-check-circle"></i> Еженедельные созвоны с экспертом по нейросетям</li>
+                    <li><i class="fas fa-check-circle"></i> Бессрочный доступ + все обновления курса</li>
+                </ul>
+                <a href="#" id="priceModalBtn" class="btn-primary" style="width: 100%;">Записаться на курс →</a>
+                <p style="margin-top: 16px; font-size: 0.85rem; color:#6e6e73;">Рассрочка без %, возврат в течение 14 дней</p>
+            </div>
+        </div>
+
+        <!-- Testimonial -->
+        <div class="container">
+            <div class="testimonial">
+                <i class="fas fa-quote-left" style="font-size: 2rem; color: #c6c6c8; margin-bottom: 16px; display: block;"></i>
+                <p>“До курса я не написал ни строчки игрового кода. За 4 недели сделал раннер в стиле cyberpunk, весь контент создан через нейросети. Теперь планирую запустить в Steam!”</p>
+                <div class="testimonial-author">— Екатерина К., выпускница потока “NeoGame AI”</div>
+            </div>
+        </div>
+
+        <!-- CTA Block -->
+        <div class="container">
+            <div class="cta-section">
+                <h2>Готов начать создавать игры будущего?</h2>
+                <p style="font-size: 1.2rem; opacity: 0.9;">Присоединяйся к первым 500 студентам, которые осваивают геймдев с помощью AI.</p>
+                <a href="#" id="ctaModalBtn" class="btn-primary">Оставить заявку →</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2025 NeoGame AI — обучение созданию игр с использованием нейросетей. Все права защищены.</p>
+            <p style="margin-top: 8px;"><i class="fas fa-envelope"></i> hello@neogame.ai  |  @neogame_ai</p>
+        </div>
+    </footer>
+
+    <!-- Modal форма захвата -->
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeModalBtn">&times;</span>
+            <i class="fas fa-magic" style="font-size: 2.5rem; color: #0071e3; margin-bottom: 8px;"></i>
+            <h3>Начните обучение</h3>
+            <p>Оставьте контакты и получите бесплатный гайд «ТОП-50 промптов для игр» + скидку 15% на курс</p>
+            <form id="leadForm">
+                <div class="input-group">
+                    <input type="text" id="nameInput" placeholder="Ваше имя" required>
+                </div>
+                <div class="input-group">
+                    <input type="email" id="emailInput" placeholder="Email" required>
+                </div>
+                <div class="input-group">
+                    <input type="tel" id="phoneInput" placeholder="Телефон (необязательно)">
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; padding: 14px;">Получить доступ <i class="fas fa-arrow-right"></i></button>
+                <div id="formSuccessMsg" class="success-message"></div>
+            </form>
+            <p style="font-size: 0.75rem; margin-top: 20px; color:#8e8e93;">Нажимая кнопку, вы соглашаетесь с условиями обработки данных.</p>
+        </div>
+    </div>
+
+    <script>
+        // Модальное окно логика (как в Apple — просто и чисто)
+        const modal = document.getElementById('registerModal');
+        const openModalBtns = document.querySelectorAll('#openModalBtn, #heroOpenModal, #priceModalBtn, #ctaModalBtn');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+
+        function openModal() {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        function closeModal() {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+            // Сброс сообщения и формы при закрытии
+            document.getElementById('leadForm').reset();
+            const msgDiv = document.getElementById('formSuccessMsg');
+            msgDiv.innerHTML = '';
+        }
+
+        openModalBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                openModal();
+            });
+        });
+
+        closeModalBtn.addEventListener('click', closeModal);
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        // Обработка отправки формы (имитация продажи / регистрации)
+        const leadForm = document.getElementById('leadForm');
+        const successMsgDiv = document.getElementById('formSuccessMsg');
+
+        leadForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('nameInput').value.trim();
+            const email = document.getElementById('emailInput').value.trim();
+            if (!name || !email) {
+                successMsgDiv.innerHTML = '⚠️ Пожалуйста, укажите имя и email.';
+                successMsgDiv.style.color = '#ff3b30';
+                setTimeout(() => {
+                    successMsgDiv.innerHTML = '';
+                }, 2500);
+                return;
+            }
+            // имитация отправки -> сохранение лида
+            console.log(`Lead: ${name}, ${email}, телефон: ${document.getElementById('phoneInput').value}`);
+            successMsgDiv.innerHTML = '✅ Заявка принята! Скоро с вами свяжется менеджер.';
+            successMsgDiv.style.color = '#28cd41';
+            leadForm.reset();
+            setTimeout(() => {
+                closeModal();
+            }, 2000);
+        });
+
+        // Плавный скролл для навигации (iOS-стиль)
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            if(anchor.getAttribute('href') !== '#') {
+                anchor.addEventListener('click', function(e) {
+                    const targetId = this.getAttribute('href');
+                    if(targetId === "#" || targetId === "") return;
+                    const targetElem = document.querySelector(targetId);
+                    if(targetElem) {
+                        e.preventDefault();
+                        targetElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
