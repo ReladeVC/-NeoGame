@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>MD ReLade — Студия нового поколения игр и AI-разработки</title>
+
+<!-- FAVICON -->
+<link rel="icon" type="image/x-icon" href="icon.ico">
+<link rel="shortcut icon" type="image/x-icon" href="icon.ico">
+<link rel="apple-touch-icon" href="icon.ico">
+<meta name="theme-color" content="#05050a">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;600;700;800;900&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -58,15 +65,15 @@ body{
 }
 @keyframes load{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}
 
-/* ===== CUSTOM CURSOR ===== */
+/* ===== CUSTOM CURSOR (COMPACT) ===== */
 .cursor-dot,.cursor-ring{
   position:fixed;top:0;left:0;pointer-events:none;z-index:9998;
   transform:translate(-50%,-50%);
   mix-blend-mode:difference;
 }
-.cursor-dot{width:8px;height:8px;background:#fff;border-radius:50%;transition:width .2s,height .2s}
-.cursor-ring{width:40px;height:40px;border:1.5px solid rgba(255,255,255,.5);border-radius:50%;transition:transform .25s ease,width .25s,height .25s,border-color .25s}
-.cursor-ring.hover{width:70px;height:70px;border-color:#fff;background:rgba(255,255,255,.05)}
+.cursor-dot{width:5px;height:5px;background:#fff;border-radius:50%;transition:width .2s,height .2s}
+.cursor-ring{width:26px;height:26px;border:1.2px solid rgba(255,255,255,.6);border-radius:50%;transition:transform .22s ease,width .22s,height .22s,border-color .22s,background .22s}
+.cursor-ring.hover{width:44px;height:44px;border-color:#fff;background:rgba(255,255,255,.08)}
 @media (hover:none){.cursor-dot,.cursor-ring{display:none}body{cursor:auto}}
 
 /* ===== CANVAS BACKGROUND ===== */
@@ -77,13 +84,13 @@ body{
 
 /* ===== GLOW ORB ===== */
 .glow-orb{
-  position:fixed;width:600px;height:600px;border-radius:50%;
-  background:radial-gradient(circle,rgba(168,85,247,.35) 0%,transparent 70%);
+  position:fixed;width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(circle,rgba(168,85,247,.3) 0%,transparent 70%);
   filter:blur(60px);pointer-events:none;z-index:-1;
   transform:translate(-50%,-50%);
   transition:transform .4s ease;
 }
-.glow-orb.b{background:radial-gradient(circle,rgba(34,211,238,.25) 0%,transparent 70%)}
+.glow-orb.b{background:radial-gradient(circle,rgba(34,211,238,.2) 0%,transparent 70%)}
 
 /* ===== NAVBAR ===== */
 .navbar{
@@ -285,33 +292,133 @@ section{position:relative;padding:120px 32px}
   display:grid;grid-template-columns:1.1fr 1fr;gap:80px;align-items:center;
   margin-top:60px;
 }
-.about-visual{
-  position:relative;aspect-ratio:1;
-  border-radius:32px;overflow:hidden;
-  background:linear-gradient(135deg,rgba(168,85,247,.15),rgba(34,211,238,.08));
-  border:1px solid var(--line);
-}
-.orb{
-  position:absolute;border-radius:50%;filter:blur(40px);
-}
-.orb-1{width:220px;height:220px;background:#a855f7;top:15%;left:15%;animation:float1 8s ease-in-out infinite}
-.orb-2{width:280px;height:280px;background:#22d3ee;bottom:10%;right:10%;animation:float2 10s ease-in-out infinite}
-.orb-3{width:160px;height:160px;background:#f472b6;top:50%;left:40%;animation:float3 12s ease-in-out infinite}
-@keyframes float1{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,-30px)}}
-@keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,40px)}}
-@keyframes float3{0%,100%{transform:translate(0,0)}50%{transform:translate(-20px,-40px)}}
 
-.about-visual::before{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.1),transparent 50%);
-  z-index:1;
+/* ===== ABOUT VISUAL — NEW IMAGE SHOWCASE ===== */
+.about-visual{
+  position:relative;
+  aspect-ratio:1/1;
+  border-radius:32px;
+  overflow:visible;
 }
-.about-visual-text{
-  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font-family:'Unbounded',sans-serif;font-weight:800;font-size:4rem;
-  background:rgba(255,255,255,.15);
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-  z-index:2;letter-spacing:-.04em;
+.about-visual-frame{
+  position:relative;
+  width:100%;
+  height:100%;
+  border-radius:32px;
+  overflow:hidden;
+  background:linear-gradient(135deg,#1a0d2e,#0a0a14);
+  border:1px solid var(--line);
+  box-shadow:
+    0 40px 80px -20px rgba(168,85,247,.35),
+    0 0 0 1px rgba(168,85,247,.15);
+  transition:transform .6s cubic-bezier(.2,.9,.4,1.1);
+}
+.about-visual:hover .about-visual-frame{
+  transform:translateY(-8px) rotate(.5deg);
+}
+.about-visual-img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+  transition:transform .8s cubic-bezier(.2,.9,.4,1.1),filter .6s;
+  z-index:2;
+}
+.about-visual:hover .about-visual-img{
+  transform:scale(1.06);
+  filter:brightness(1.08) saturate(1.1);
+}
+/* Animated gradient border around the image */
+.about-visual-frame::before{
+  content:'';
+  position:absolute;
+  inset:-2px;
+  background:var(--grad);
+  background-size:300% 300%;
+  border-radius:34px;
+  z-index:-1;
+  animation:borderShift 8s ease infinite;
+  opacity:.6;
+}
+@keyframes borderShift{
+  0%,100%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+}
+/* Dark vignette over image for legibility */
+.about-visual-frame::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(ellipse at 30% 20%,transparent 40%,rgba(5,5,10,.5) 100%),
+    linear-gradient(180deg,transparent 50%,rgba(5,5,10,.85) 100%);
+  z-index:3;
+  pointer-events:none;
+}
+/* Floating caption over image */
+.about-visual-caption{
+  position:absolute;
+  bottom:24px;left:24px;right:24px;
+  z-index:4;
+  padding:18px 22px;
+  background:rgba(10,10,20,.55);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:18px;
+  display:flex;align-items:center;gap:14px;
+}
+.about-visual-caption-ico{
+  width:40px;height:40px;border-radius:12px;
+  background:var(--grad);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:1rem;flex-shrink:0;
+  box-shadow:0 8px 20px rgba(168,85,247,.4);
+}
+.about-visual-caption-text h5{
+  font-family:'Unbounded',sans-serif;font-weight:600;font-size:.9rem;margin-bottom:2px;
+}
+.about-visual-caption-text p{font-size:.78rem;color:var(--muted);line-height:1.4}
+
+/* Floating orbs behind the frame */
+.about-visual .orb{
+  position:absolute;border-radius:50%;filter:blur(50px);
+  z-index:0;pointer-events:none;
+}
+.about-visual .orb-1{width:220px;height:220px;background:#a855f7;top:-40px;left:-40px;animation:float1 8s ease-in-out infinite;opacity:.7}
+.about-visual .orb-2{width:260px;height:260px;background:#22d3ee;bottom:-50px;right:-50px;animation:float2 10s ease-in-out infinite;opacity:.6}
+.about-visual .orb-3{width:140px;height:140px;background:#f472b6;top:40%;right:-30px;animation:float3 12s ease-in-out infinite;opacity:.5}
+@keyframes float1{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,-20px)}}
+@keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(-25px,30px)}}
+@keyframes float3{0%,100%{transform:translate(0,0)}50%{transform:translate(-15px,-30px)}}
+
+/* Floating decorative stickers */
+.sticker{
+  position:absolute;
+  padding:8px 14px;border-radius:999px;
+  background:rgba(10,10,20,.7);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.12);
+  font-size:.72rem;font-weight:600;color:#fff;
+  display:inline-flex;align-items:center;gap:8px;
+  z-index:5;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);
+}
+.sticker i{color:#22d3ee}
+.sticker.top-right{top:-14px;right:-14px;animation:floatSticker 4s ease-in-out infinite}
+.sticker.bottom-left{bottom:-14px;left:-14px;animation:floatSticker 5s ease-in-out infinite .5s}
+.sticker.mid-right{top:50%;right:-30px;transform:translateY(-50%);animation:floatSticker 6s ease-in-out infinite 1s}
+@keyframes floatSticker{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-10px)}
+}
+.sticker.mid-right{animation-name:floatStickerMid}
+@keyframes floatStickerMid{
+  0%,100%{transform:translateY(-50%)}
+  50%{transform:translateY(calc(-50% - 10px))}
 }
 
 .about-points{list-style:none;margin-top:40px;display:flex;flex-direction:column;gap:22px}
@@ -352,6 +459,7 @@ section{position:relative;padding:120px 32px}
   transform-style:preserve-3d;
   perspective:1000px;
   cursor:none;
+  display:block;
 }
 .game-card:hover{
   box-shadow:0 40px 80px -20px rgba(168,85,247,.4),0 0 0 1px rgba(168,85,247,.3);
@@ -360,11 +468,20 @@ section{position:relative;padding:120px 32px}
   aspect-ratio:16/10;position:relative;overflow:hidden;
   background:#0a0a14;
 }
+.game-media img{
+  width:100%;height:100%;object-fit:cover;display:block;
+  transition:transform .8s cubic-bezier(.2,.9,.4,1.1),filter .6s;
+}
+.game-card:hover .game-media img{
+  transform:scale(1.08);
+  filter:brightness(1.1) saturate(1.1);
+}
 .game-media::after{
   content:'';position:absolute;inset:0;
-  background:linear-gradient(180deg,transparent 40%,rgba(5,5,10,.9) 100%);
+  background:linear-gradient(180deg,transparent 30%,rgba(5,5,10,.85) 100%);
+  pointer-events:none;
+  z-index:1;
 }
-.game-media svg{width:100%;height:100%;display:block}
 .game-badge{
   position:absolute;top:18px;left:18px;z-index:2;
   padding:6px 12px;border-radius:999px;
@@ -378,7 +495,7 @@ section{position:relative;padding:120px 32px}
 .game-genre{font-size:.75rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
 .game-title{
   font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.7rem;
-  letter-spacing:-.02em;margin-bottom:12px;
+  letter-spacing:-.02em;margin-bottom:12px;color:#fff;
 }
 .game-desc{color:var(--muted);font-size:.92rem;line-height:1.55;margin-bottom:24px}
 .game-play{
@@ -572,7 +689,10 @@ section{position:relative;padding:120px 32px}
 @media (max-width:900px){
   .nav-links{display:none}
   .burger{display:flex}
-  .about-grid{grid-template-columns:1fr;gap:40px}
+  .about-grid{grid-template-columns:1fr;gap:60px}
+  .about-visual{max-width:500px;margin:0 auto;width:100%}
+  .sticker.mid-right{right:-10px}
+  .sticker.top-right,.sticker.bottom-left{right:auto;left:auto}
   .footer-grid{grid-template-columns:1fr 1fr;gap:40px}
   .cta-card{padding:60px 30px}
   section{padding:80px 20px}
@@ -583,6 +703,8 @@ section{position:relative;padding:120px 32px}
   .footer-grid{grid-template-columns:1fr}
   .games-head{flex-direction:column;align-items:flex-start}
   .navbar{padding:14px 20px}
+  .sticker{font-size:.65rem;padding:6px 10px}
+  .sticker.mid-right{display:none}
 }
 
 /* Mobile menu */
@@ -691,11 +813,31 @@ section{position:relative;padding:120px 32px}
           </li>
         </ul>
       </div>
+
+      <!-- ===== NEW ABOUT VISUAL WITH IMAGE ===== -->
       <div class="about-visual reveal" data-hover>
+        <!-- Floating orbs -->
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
         <div class="orb orb-3"></div>
-        <div class="about-visual-text">MD·R</div>
+
+        <!-- Floating stickers -->
+        <div class="sticker top-right"><i class="fas fa-mug-hot"></i> Coffee & Code</div>
+        <div class="sticker bottom-left"><i class="fas fa-heart"></i> Made with passion</div>
+        <div class="sticker mid-right"><i class="fas fa-gamepad"></i> 3 games shipped</div>
+
+        <!-- Main image frame -->
+        <div class="about-visual-frame">
+          <img class="about-visual-img" src="about.png" alt="MD ReLade studio — наша команда за работой"
+               onerror="this.onerror=null; this.src='https://placehold.co/800x800/1a0d2e/a855f7?text=MD+ReLade+Studio';">
+          <div class="about-visual-caption">
+            <div class="about-visual-caption-ico"><i class="fas fa-terminal"></i></div>
+            <div class="about-visual-caption-text">
+              <h5>Наша лаборатория</h5>
+              <p>Здесь рождаются идеи и прототипы будущих игр</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -714,176 +856,44 @@ section{position:relative;padding:120px 32px}
     </div>
     <div class="games-grid">
 
-      <!-- GAME 1: Dogs -->
+      <!-- GAME 1: Dogs (Casino) — 3.png -->
       <a href="https://ReladeVC.github.io/Dogs/" target="_blank" rel="noopener" class="game-card reveal" data-tilt data-hover>
         <div class="game-media">
           <span class="game-badge live"><i class="fas fa-circle" style="font-size:6px;vertical-align:middle;margin-right:5px"></i> Live</span>
-          <svg viewBox="0 0 400 250" preserveAspectRatio="xMidYMid slice">
-            <defs>
-              <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#f472b6"/>
-                <stop offset="100%" stop-color="#a855f7"/>
-              </linearGradient>
-              <linearGradient id="g1b" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#fbbf24"/>
-                <stop offset="100%" stop-color="#f59e0b"/>
-              </linearGradient>
-            </defs>
-            <rect width="400" height="250" fill="url(#g1)"/>
-            <!-- Neon casino grid -->
-            <g opacity=".25" stroke="#fff" stroke-width="1">
-              <line x1="0" y1="50" x2="400" y2="50"/>
-              <line x1="0" y1="100" x2="400" y2="100"/>
-              <line x1="0" y1="150" x2="400" y2="150"/>
-              <line x1="0" y1="200" x2="400" y2="200"/>
-              <line x1="80" y1="0" x2="80" y2="250"/>
-              <line x1="160" y1="0" x2="160" y2="250"/>
-              <line x1="240" y1="0" x2="240" y2="250"/>
-              <line x1="320" y1="0" x2="320" y2="250"/>
-            </g>
-            <!-- Slot reels -->
-            <g transform="translate(100,50)">
-              <rect width="60" height="150" rx="8" fill="rgba(0,0,0,.4)" stroke="#fff" stroke-width="2"/>
-              <circle cx="30" cy="75" r="20" fill="url(#g1b)"/>
-              <text x="30" y="82" text-anchor="middle" fill="#fff" font-family="Unbounded" font-weight="800" font-size="22">🎰</text>
-            </g>
-            <g transform="translate(170,50)">
-              <rect width="60" height="150" rx="8" fill="rgba(0,0,0,.4)" stroke="#fff" stroke-width="2"/>
-              <text x="30" y="90" text-anchor="middle" font-size="40">🐕</text>
-            </g>
-            <g transform="translate(240,50)">
-              <rect width="60" height="150" rx="8" fill="rgba(0,0,0,.4)" stroke="#fff" stroke-width="2"/>
-              <text x="30" y="90" text-anchor="middle" font-size="40">💎</text>
-            </g>
-            <!-- Jackpot text -->
-            <text x="200" y="235" text-anchor="middle" fill="#fff" font-family="Unbounded" font-weight="800" font-size="14" letter-spacing="4">JACKPOT · 1 000 ₽</text>
-          </svg>
+          <img src="3.png" alt="Dogs: Lucky Slots — Казино игра" onerror="this.onerror=null; this.src='https://placehold.co/800x500/1a0d2e/a855f7?text=Dogs+%7C+Casino'">
         </div>
         <div class="game-body">
           <div class="game-genre">Casual · Casino Arcade</div>
           <h3 class="game-title">Dogs: Lucky Slots</h3>
-          <p class="game-desc">Аркадный слот с очаровательными персонажами-собаками. Бонусные раунды, фриспины с множителем ×2 и динамичная атмосфера ночного казино.</p>
+          <p class="game-desc">Аркадный слот с очаровательными персонажами-собаками. Бонусные раунды, фриспины с множителем ×2, покупка бонуса за 1000₽ и динамичная атмосфера ночного казино.</p>
           <span class="game-play"><span>Запустить игру</span><i class="fas fa-arrow-right"></i></span>
         </div>
       </a>
 
-      <!-- GAME 2: Anime -->
+      <!-- GAME 2: Anime (Цукихэмэ) — 2.png -->
       <a href="https://ReladeVC.github.io/Anime/" target="_blank" rel="noopener" class="game-card reveal" data-tilt data-hover>
         <div class="game-media">
           <span class="game-badge ai"><i class="fas fa-sparkles" style="margin-right:5px"></i> AI Art</span>
-          <svg viewBox="0 0 400 250" preserveAspectRatio="xMidYMid slice">
-            <defs>
-              <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#1e1b4b"/>
-                <stop offset="50%" stop-color="#7c3aed"/>
-                <stop offset="100%" stop-color="#ec4899"/>
-              </linearGradient>
-              <radialGradient id="moon">
-                <stop offset="0%" stop-color="#fef3c7"/>
-                <stop offset="100%" stop-color="#f59e0b"/>
-              </radialGradient>
-            </defs>
-            <rect width="400" height="250" fill="url(#g2)"/>
-            <!-- Moon -->
-            <circle cx="310" cy="70" r="38" fill="url(#moon)"/>
-            <circle cx="298" cy="62" r="38" fill="#1e1b4b" opacity=".6"/>
-            <!-- Stars -->
-            <g fill="#fff" opacity=".8">
-              <circle cx="60" cy="40" r="1.5"/><circle cx="120" cy="80" r="1"/>
-              <circle cx="180" cy="30" r="1.5"/><circle cx="240" cy="100" r="1"/>
-              <circle cx="80" cy="120" r="1"/><circle cx="350" cy="140" r="1.5"/>
-              <circle cx="40" cy="180" r="1"/><circle cx="280" cy="180" r="1.5"/>
-            </g>
-            <!-- Torii silhouette -->
-            <g transform="translate(80,130)" fill="#0f0a1f">
-              <rect x="0" y="0" width="8" height="100"/>
-              <rect x="80" y="0" width="8" height="100"/>
-              <rect x="-10" y="-5" width="108" height="8"/>
-              <rect x="-6" y="-18" width="100" height="6"/>
-            </g>
-            <!-- Character silhouette (anime girl) -->
-            <g transform="translate(220,95)" fill="#0f0a1f">
-              <!-- Hair -->
-              <path d="M 0 30 Q -5 10 10 0 Q 25 -8 40 0 Q 55 10 50 30 Q 55 50 50 70 L 45 110 L 35 95 L 25 110 L 15 95 L 5 110 L 0 70 Z"/>
-              <!-- Body -->
-              <ellipse cx="25" cy="40" rx="14" ry="16" fill="#fde4cf"/>
-              <!-- Eyes -->
-              <ellipse cx="19" cy="38" rx="2" ry="3" fill="#7c3aed"/>
-              <ellipse cx="31" cy="38" rx="2" ry="3" fill="#7c3aed"/>
-              <!-- Kimono -->
-              <path d="M 11 55 L 39 55 L 45 120 L 5 120 Z" fill="#ec4899"/>
-              <path d="M 15 70 L 35 70 L 38 90 L 12 90 Z" fill="#a855f7"/>
-            </g>
-            <!-- Title -->
-            <text x="200" y="235" text-anchor="middle" fill="#fef3c7" font-family="Unbounded" font-weight="800" font-size="16" letter-spacing="6">月姫 · TSUKIHIME</text>
-          </svg>
+          <img src="2.png" alt="Цукихэмэ — Визуальная новелла" onerror="this.onerror=null; this.src='https://placehold.co/800x500/1e1b4b/ec4899?text=Tsukihime+%7C+Anime'">
         </div>
         <div class="game-body">
           <div class="game-genre">Interactive · Visual Novel</div>
           <h3 class="game-title">Цукихэмэ</h3>
-          <p class="game-desc">Медитативная интерактивная новелла в эстетике японской ночи. Атмосферный саундтрек, сменяющаяся погода и ветвящийся сюжет, вдохновлённый аниме-классикой.</p>
+          <p class="game-desc">Медитативная интерактивная новелла в эстетике японской ночи. Атмосферный саундтрек, динамическая смена погоды и управление воспроизведением — полная свобода наблюдения за миром.</p>
           <span class="game-play"><span>Запустить игру</span><i class="fas fa-arrow-right"></i></span>
         </div>
       </a>
 
-      <!-- GAME 3: Stack Attack -->
+      <!-- GAME 3: Stack Attack (Складской грузчик) — 1.png -->
       <a href="https://ReladeVC.github.io/stackattack" target="_blank" rel="noopener" class="game-card reveal" data-tilt data-hover>
         <div class="game-media">
           <span class="game-badge live"><i class="fas fa-circle" style="font-size:6px;vertical-align:middle;margin-right:5px"></i> Live</span>
-          <svg viewBox="0 0 400 250" preserveAspectRatio="xMidYMid slice">
-            <defs>
-              <linearGradient id="g3" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#0f172a"/>
-                <stop offset="100%" stop-color="#1e293b"/>
-              </linearGradient>
-              <linearGradient id="box" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#fbbf24"/>
-                <stop offset="100%" stop-color="#d97706"/>
-              </linearGradient>
-            </defs>
-            <rect width="400" height="250" fill="url(#g3)"/>
-            <!-- Warehouse grid floor -->
-            <g opacity=".3" stroke="#475569" stroke-width="1">
-              <line x1="0" y1="220" x2="400" y2="220"/>
-              <line x1="0" y1="230" x2="400" y2="230"/>
-              <line x1="0" y1="240" x2="400" y2="240"/>
-            </g>
-            <!-- Stacked boxes -->
-            <g transform="translate(170,0)">
-              <rect x="0" y="190" width="60" height="40" fill="url(#box)" stroke="#78350f" stroke-width="1.5"/>
-              <rect x="-2" y="150" width="60" height="40" fill="url(#box)" stroke="#78350f" stroke-width="1.5"/>
-              <rect x="4" y="110" width="60" height="40" fill="url(#box)" stroke="#78350f" stroke-width="1.5"/>
-              <rect x="-1" y="70" width="60" height="40" fill="url(#box)" stroke="#78350f" stroke-width="1.5"/>
-              <rect x="2" y="30" width="60" height="40" fill="url(#box)" stroke="#78350f" stroke-width="1.5" opacity=".6"/>
-              <!-- falling box -->
-              <rect x="15" y="-10" width="30" height="30" fill="url(#box)" stroke="#78350f" stroke-width="1.5">
-                <animate attributeName="y" values="-10;20;-10" dur="2s" repeatCount="indefinite"/>
-              </rect>
-            </g>
-            <!-- Worker silhouette -->
-            <g transform="translate(90,150)" fill="#64748b">
-              <circle cx="15" cy="10" r="8"/>
-              <rect x="8" y="18" width="14" height="25"/>
-              <rect x="5" y="43" width="6" height="22"/>
-              <rect x="19" y="43" width="6" height="22"/>
-              <!-- Carrying box -->
-              <rect x="22" y="18" width="20" height="18" fill="url(#box)" stroke="#78350f"/>
-            </g>
-            <!-- Arrow -->
-            <g transform="translate(280,180)" opacity=".7">
-              <path d="M 0 10 L 30 10 L 25 5 M 30 10 L 25 15" stroke="#22d3ee" stroke-width="2" fill="none"/>
-            </g>
-            <!-- HUD -->
-            <text x="20" y="30" fill="#22d3ee" font-family="Unbounded" font-weight="700" font-size="12">SCORE</text>
-            <text x="20" y="52" fill="#fff" font-family="Unbounded" font-weight="800" font-size="22">370</text>
-            <text x="320" y="30" fill="#f472b6" font-family="Unbounded" font-weight="700" font-size="12">SPEED</text>
-            <text x="320" y="52" fill="#fff" font-family="Unbounded" font-weight="800" font-size="22">50</text>
-          </svg>
+          <img src="1.png" alt="Складской грузчик — Аркада" onerror="this.onerror=null; this.src='https://placehold.co/800x500/0f172a/fbbf24?text=Stack+Attack'">
         </div>
         <div class="game-body">
           <div class="game-genre">Arcade · Reflex</div>
           <h3 class="game-title">Складской грузчик</h3>
-          <p class="game-desc">Динамичная аркада на реакцию и чувство ритма. Укладывайте падающие ящики в стабильную колонну, избегая смещений. Каждый уровень — быстрее и точнее.</p>
+          <p class="game-desc">Динамичная аркада на реакцию и чувство ритма. Настраиваемая физика: скорость падения, сила прыжка, гравитация. Укладывайте ящики в стабильную колонну, избегая смещений.</p>
           <span class="game-play"><span>Запустить игру</span><i class="fas fa-arrow-right"></i></span>
         </div>
       </a>
@@ -1054,7 +1064,7 @@ window.addEventListener('load',()=>{
   setTimeout(()=>document.getElementById('preloader').classList.add('done'),1600);
 });
 
-/* ====== CUSTOM CURSOR ====== */
+/* ====== CUSTOM CURSOR (COMPACT) ====== */
 const dot=document.getElementById('cDot'),ring=document.getElementById('cRing');
 let mx=0,my=0,rx=0,ry=0;
 window.addEventListener('mousemove',e=>{
@@ -1062,7 +1072,7 @@ window.addEventListener('mousemove',e=>{
   dot.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;
 });
 function animateRing(){
-  rx+=(mx-rx)*.15;ry+=(my-ry)*.15;
+  rx+=(mx-rx)*.18;ry+=(my-ry)*.18;
   ring.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`;
   requestAnimationFrame(animateRing);
 }
@@ -1111,7 +1121,6 @@ for(let i=0;i<80;i++)particles.push(new P());
 function loop(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   particles.forEach(p=>{p.update();p.draw()});
-  // draw lines
   for(let i=0;i<particles.length;i++){
     for(let j=i+1;j<particles.length;j++){
       const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y;
