@@ -1,832 +1,1205 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>NeoGame AI — Обучение созданию игр через нейросети</title>
-    <!-- Preconnect для улучшения загрузки шрифтов -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- SF Pro / Inter как современный аналог системного шрифта Apple -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <!-- Font Awesome 6 (Free Icons) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MD ReLade — Студия нового поколения игр и AI-разработки</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;600;700;800;900&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{
+  --bg:#05050a;
+  --bg-2:#0b0b14;
+  --ink:#f5f3ff;
+  --muted:#a39ec9;
+  --line:rgba(255,255,255,.08);
+  --accent:#a855f7;
+  --accent-2:#22d3ee;
+  --accent-3:#f472b6;
+  --grad: linear-gradient(135deg,#a855f7 0%,#22d3ee 50%,#f472b6 100%);
+  --glass:rgba(255,255,255,.04);
+  --radius:24px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Manrope',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  overflow-x:hidden;
+  cursor:none;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+/* ===== PRELOADER ===== */
+.preloader{
+  position:fixed;inset:0;background:var(--bg);z-index:9999;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:30px;
+  transition:opacity .8s ease,visibility .8s;
+}
+.preloader.done{opacity:0;visibility:hidden}
+.preloader-logo{
+  font-family:'Unbounded',sans-serif;font-weight:800;font-size:3rem;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+  letter-spacing:-.04em;
+  animation:pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{transform:scale(1);filter:brightness(1)}50%{transform:scale(1.05);filter:brightness(1.3)}}
+.preloader-bar{
+  width:240px;height:2px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden;
+}
+.preloader-bar::after{
+  content:'';display:block;height:100%;width:100%;
+  background:var(--grad);
+  animation:load 1.8s ease-in-out forwards;
+  transform-origin:left;
+}
+@keyframes load{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
-            background-color: #ffffff;
-            color: #1d1d1f;
-            line-height: 1.4;
-            scroll-behavior: smooth;
-        }
+/* ===== CUSTOM CURSOR ===== */
+.cursor-dot,.cursor-ring{
+  position:fixed;top:0;left:0;pointer-events:none;z-index:9998;
+  transform:translate(-50%,-50%);
+  mix-blend-mode:difference;
+}
+.cursor-dot{width:8px;height:8px;background:#fff;border-radius:50%;transition:width .2s,height .2s}
+.cursor-ring{width:40px;height:40px;border:1.5px solid rgba(255,255,255,.5);border-radius:50%;transition:transform .25s ease,width .25s,height .25s,border-color .25s}
+.cursor-ring.hover{width:70px;height:70px;border-color:#fff;background:rgba(255,255,255,.05)}
+@media (hover:none){.cursor-dot,.cursor-ring{display:none}body{cursor:auto}}
 
-        /* Apple-inspired smooth corners, clean typography */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
+/* ===== CANVAS BACKGROUND ===== */
+#bgCanvas{position:fixed;inset:0;z-index:-2;opacity:.8}
+.noise{position:fixed;inset:0;z-index:-1;opacity:.03;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
 
-        /* Header / Navigation like Apple */
-        .navbar {
-            backdrop-filter: blur(20px);
-            background-color: rgba(255, 255, 255, 0.8);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            padding: 16px 0;
-        }
+/* ===== GLOW ORB ===== */
+.glow-orb{
+  position:fixed;width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,rgba(168,85,247,.35) 0%,transparent 70%);
+  filter:blur(60px);pointer-events:none;z-index:-1;
+  transform:translate(-50%,-50%);
+  transition:transform .4s ease;
+}
+.glow-orb.b{background:radial-gradient(circle,rgba(34,211,238,.25) 0%,transparent 70%)}
 
-        .nav-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
+/* ===== NAVBAR ===== */
+.navbar{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:18px 32px;
+  display:flex;align-items:center;justify-content:space-between;
+  transition:all .4s ease;
+}
+.navbar.scrolled{
+  padding:12px 32px;
+  background:rgba(5,5,10,.7);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border-bottom:1px solid var(--line);
+}
+.nav-logo{
+  font-family:'Unbounded',sans-serif;font-weight:800;font-size:1.4rem;letter-spacing:-.03em;
+  display:flex;align-items:center;gap:10px;
+}
+.nav-logo .md{color:#fff}
+.nav-logo .re{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.nav-logo-icon{
+  width:32px;height:32px;border-radius:10px;
+  background:var(--grad);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+.nav-logo-icon::before{
+  content:'';position:absolute;inset:1.5px;border-radius:8.5px;background:var(--bg);
+}
+.nav-logo-icon i{position:relative;z-index:1;color:#fff;font-size:.85rem}
+.nav-links{display:flex;gap:36px;align-items:center}
+.nav-links a{
+  color:var(--muted);text-decoration:none;font-weight:500;font-size:.92rem;
+  position:relative;transition:color .3s;
+}
+.nav-links a:hover{color:#fff}
+.nav-links a::after{
+  content:'';position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);
+  width:0;height:2px;background:var(--grad);transition:width .3s;
+}
+.nav-links a:hover::after{width:100%}
+.nav-cta{
+  padding:10px 22px;border-radius:999px;
+  background:var(--grad);color:#fff;font-weight:600;font-size:.88rem;
+  border:none;cursor:none;text-decoration:none;
+  box-shadow:0 8px 30px rgba(168,85,247,.35);
+  transition:transform .3s,box-shadow .3s;
+  position:relative;overflow:hidden;
+}
+.nav-cta::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,#22d3ee,#a855f7,#f472b6);
+  opacity:0;transition:opacity .4s;
+}
+.nav-cta span{position:relative;z-index:1}
+.nav-cta:hover::before{opacity:1}
+.nav-cta:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(168,85,247,.55)}
 
-        .logo {
-            font-weight: 600;
-            font-size: 1.6rem;
-            letter-spacing: -0.02em;
-            background: linear-gradient(135deg, #1d1d1f, #4a4a6a);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+.burger{display:none;flex-direction:column;gap:5px;cursor:none;background:none;border:none}
+.burger span{width:24px;height:2px;background:#fff;border-radius:2px;transition:.3s}
 
-        .logo i {
-            background: none;
-            color: #0071e3;
-            font-size: 1.8rem;
-        }
+/* ===== HERO ===== */
+.hero{
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;padding:140px 32px 80px;
+  text-align:center;
+}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:8px 18px;border-radius:999px;
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--line);
+  font-size:.8rem;color:var(--muted);font-weight:500;
+  margin-bottom:32px;
+  backdrop-filter:blur(10px);
+  opacity:0;animation:fadeUp .8s .2s forwards;
+}
+.hero-eyebrow .dot{
+  width:8px;height:8px;border-radius:50%;background:#22d3ee;
+  box-shadow:0 0 12px #22d3ee;
+  animation:blink 1.4s ease-in-out infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hero-title{
+  font-family:'Unbounded',sans-serif;
+  font-weight:800;
+  font-size:clamp(2.8rem,8vw,7.5rem);
+  line-height:.95;
+  letter-spacing:-.04em;
+  margin-bottom:28px;
+  opacity:0;animation:fadeUp 1s .4s forwards;
+}
+.hero-title .line{display:block}
+.hero-title .grad{
+  background:var(--grad);background-size:200% 200%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:gradientShift 6s ease infinite;
+}
+@keyframes gradientShift{
+  0%,100%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+}
+.hero-sub{
+  font-size:clamp(1rem,1.6vw,1.35rem);
+  color:var(--muted);
+  max-width:720px;margin:0 auto 44px;line-height:1.55;
+  opacity:0;animation:fadeUp 1s .6s forwards;
+}
+.hero-actions{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;opacity:0;animation:fadeUp 1s .8s forwards}
+.btn-hero{
+  padding:16px 32px;border-radius:999px;
+  font-weight:600;font-size:1rem;cursor:none;text-decoration:none;
+  display:inline-flex;align-items:center;gap:10px;
+  transition:all .4s cubic-bezier(.2,.9,.4,1.1);
+  border:none;
+}
+.btn-hero.primary{
+  background:var(--grad);color:#fff;
+  box-shadow:0 20px 50px rgba(168,85,247,.35);
+}
+.btn-hero.primary:hover{transform:translateY(-4px);box-shadow:0 30px 60px rgba(168,85,247,.55)}
+.btn-hero.ghost{
+  background:transparent;color:#fff;
+  border:1px solid var(--line);
+  backdrop-filter:blur(10px);
+}
+.btn-hero.ghost:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2)}
 
-        .nav-links {
-            display: flex;
-            gap: 32px;
-            align-items: center;
-        }
+.hero-stats{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:32px;max-width:900px;margin:80px auto 0;
+  padding:32px;border-radius:24px;
+  background:var(--glass);
+  border:1px solid var(--line);
+  backdrop-filter:blur(20px);
+  opacity:0;animation:fadeUp 1s 1s forwards;
+}
+.stat-num{
+  font-family:'Unbounded',sans-serif;font-weight:700;font-size:2.2rem;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.stat-label{font-size:.85rem;color:var(--muted);margin-top:4px}
 
-        .nav-links a {
-            text-decoration: none;
-            color: #1d1d1f;
-            font-weight: 500;
-            font-size: 0.95rem;
-            transition: color 0.2s ease;
-        }
+.scroll-indicator{
+  position:absolute;bottom:30px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  color:var(--muted);font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;
+  opacity:0;animation:fadeUp 1s 1.2s forwards;
+}
+.scroll-indicator .mouse{
+  width:22px;height:36px;border:1.5px solid var(--muted);border-radius:12px;
+  position:relative;
+}
+.scroll-indicator .mouse::after{
+  content:'';position:absolute;top:8px;left:50%;transform:translateX(-50%);
+  width:3px;height:6px;background:var(--muted);border-radius:3px;
+  animation:scrollDot 1.6s ease-in-out infinite;
+}
+@keyframes scrollDot{
+  0%{transform:translate(-50%,0);opacity:1}
+  100%{transform:translate(-50%,12px);opacity:0}
+}
 
-        .nav-links a:hover {
-            color: #0071e3;
-        }
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(30px)}
+  to{opacity:1;transform:translateY(0)}
+}
 
-        .btn-primary {
-            background-color: #0071e3;
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 980px;
-            font-weight: 500;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
+/* ===== SECTION COMMON ===== */
+section{position:relative;padding:120px 32px}
+.container{max-width:1280px;margin:0 auto}
+.section-tag{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 14px;border-radius:999px;
+  background:rgba(168,85,247,.1);
+  border:1px solid rgba(168,85,247,.3);
+  color:#c4b5fd;font-size:.78rem;font-weight:600;
+  letter-spacing:.08em;text-transform:uppercase;
+  margin-bottom:24px;
+}
+.section-tag .dot{width:6px;height:6px;border-radius:50%;background:#a855f7;box-shadow:0 0 8px #a855f7}
+.section-title{
+  font-family:'Unbounded',sans-serif;
+  font-weight:700;font-size:clamp(2rem,5vw,4rem);
+  line-height:1;letter-spacing:-.03em;
+  margin-bottom:20px;
+}
+.section-title .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.section-desc{color:var(--muted);font-size:1.1rem;max-width:640px;line-height:1.55}
 
-        .btn-primary:hover {
-            background-color: #0077ed;
-            transform: scale(1.02);
-        }
+.reveal{opacity:0;transform:translateY(50px);transition:opacity 1s ease,transform 1s cubic-bezier(.2,.9,.4,1)}
+.reveal.in{opacity:1;transform:translateY(0)}
 
-        .btn-outline {
-            background: transparent;
-            border: 1px solid #0071e3;
-            color: #0071e3;
-            padding: 8px 20px;
-            border-radius: 980px;
-            font-weight: 500;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-block;
-            text-decoration: none;
-        }
+/* ===== ABOUT ===== */
+.about{padding-top:60px}
+.about-grid{
+  display:grid;grid-template-columns:1.1fr 1fr;gap:80px;align-items:center;
+  margin-top:60px;
+}
+.about-visual{
+  position:relative;aspect-ratio:1;
+  border-radius:32px;overflow:hidden;
+  background:linear-gradient(135deg,rgba(168,85,247,.15),rgba(34,211,238,.08));
+  border:1px solid var(--line);
+}
+.orb{
+  position:absolute;border-radius:50%;filter:blur(40px);
+}
+.orb-1{width:220px;height:220px;background:#a855f7;top:15%;left:15%;animation:float1 8s ease-in-out infinite}
+.orb-2{width:280px;height:280px;background:#22d3ee;bottom:10%;right:10%;animation:float2 10s ease-in-out infinite}
+.orb-3{width:160px;height:160px;background:#f472b6;top:50%;left:40%;animation:float3 12s ease-in-out infinite}
+@keyframes float1{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,-30px)}}
+@keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,40px)}}
+@keyframes float3{0%,100%{transform:translate(0,0)}50%{transform:translate(-20px,-40px)}}
 
-        .btn-outline:hover {
-            background: #0071e310;
-        }
+.about-visual::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.1),transparent 50%);
+  z-index:1;
+}
+.about-visual-text{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'Unbounded',sans-serif;font-weight:800;font-size:4rem;
+  background:rgba(255,255,255,.15);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  z-index:2;letter-spacing:-.04em;
+}
 
-        /* Hero Section */
-        .hero {
-            padding: 100px 0 80px;
-            text-align: center;
-        }
+.about-points{list-style:none;margin-top:40px;display:flex;flex-direction:column;gap:22px}
+.about-points li{
+  display:flex;gap:18px;align-items:flex-start;
+  padding:22px;border-radius:20px;
+  background:var(--glass);border:1px solid var(--line);
+  backdrop-filter:blur(10px);
+  transition:all .4s ease;
+}
+.about-points li:hover{
+  transform:translateX(8px);
+  border-color:rgba(168,85,247,.4);
+  background:rgba(168,85,247,.05);
+}
+.about-points .ico{
+  flex-shrink:0;width:44px;height:44px;border-radius:12px;
+  background:var(--grad);display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:1.1rem;
+}
+.about-points h4{font-size:1.05rem;font-weight:600;margin-bottom:4px}
+.about-points p{font-size:.9rem;color:var(--muted);line-height:1.5}
 
-        .hero-badge {
-            background: #e8f1ff;
-            color: #0071e3;
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 30px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-bottom: 24px;
-        }
+/* ===== GAMES (PORTFOLIO) ===== */
+.games{padding-bottom:140px}
+.games-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:24px;margin-bottom:64px}
+.games-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));
+  gap:32px;
+}
+.game-card{
+  position:relative;
+  border-radius:28px;overflow:hidden;
+  background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.01));
+  border:1px solid var(--line);
+  backdrop-filter:blur(14px);
+  transition:transform .6s cubic-bezier(.2,.9,.4,1.1),box-shadow .6s;
+  transform-style:preserve-3d;
+  perspective:1000px;
+  cursor:none;
+}
+.game-card:hover{
+  box-shadow:0 40px 80px -20px rgba(168,85,247,.4),0 0 0 1px rgba(168,85,247,.3);
+}
+.game-media{
+  aspect-ratio:16/10;position:relative;overflow:hidden;
+  background:#0a0a14;
+}
+.game-media::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,transparent 40%,rgba(5,5,10,.9) 100%);
+}
+.game-media svg{width:100%;height:100%;display:block}
+.game-badge{
+  position:absolute;top:18px;left:18px;z-index:2;
+  padding:6px 12px;border-radius:999px;
+  background:rgba(5,5,10,.7);backdrop-filter:blur(10px);
+  border:1px solid var(--line);
+  font-size:.7rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+}
+.game-badge.live{color:#22d3ee;border-color:rgba(34,211,238,.3)}
+.game-badge.ai{color:#f472b6;border-color:rgba(244,114,182,.3)}
+.game-body{padding:28px;position:relative;z-index:2}
+.game-genre{font-size:.75rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+.game-title{
+  font-family:'Unbounded',sans-serif;font-weight:700;font-size:1.7rem;
+  letter-spacing:-.02em;margin-bottom:12px;
+}
+.game-desc{color:var(--muted);font-size:.92rem;line-height:1.55;margin-bottom:24px}
+.game-play{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;border-radius:999px;
+  background:var(--grad);color:#fff;text-decoration:none;font-weight:600;font-size:.92rem;
+  transition:all .4s;
+  box-shadow:0 12px 30px rgba(168,85,247,.3);
+}
+.game-play i{transition:transform .3s}
+.game-card:hover .game-play{box-shadow:0 18px 40px rgba(168,85,247,.5)}
+.game-card:hover .game-play i{transform:translateX(4px)}
 
-        .hero h1 {
-            font-size: 4rem;
-            font-weight: 700;
-            letter-spacing: -0.025em;
-            background: linear-gradient(135deg, #1d1d1f 0%, #3a3a4e 100%);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            max-width: 900px;
-            margin: 0 auto 24px;
-        }
+/* ===== FEATURES ===== */
+.features{
+  background:linear-gradient(180deg,transparent,rgba(168,85,247,.03),transparent);
+  position:relative;
+}
+.features-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:24px;margin-top:60px;
+}
+.feature-card{
+  padding:32px 28px;border-radius:24px;
+  background:var(--glass);border:1px solid var(--line);
+  backdrop-filter:blur(10px);
+  position:relative;overflow:hidden;
+  transition:all .5s;
+}
+.feature-card::before{
+  content:'';position:absolute;top:0;left:-100%;width:100%;height:2px;
+  background:var(--grad);transition:left .6s;
+}
+.feature-card:hover{
+  transform:translateY(-8px);
+  border-color:rgba(168,85,247,.4);
+  background:rgba(168,85,247,.04);
+}
+.feature-card:hover::before{left:0}
+.feature-ico{
+  width:56px;height:56px;border-radius:16px;
+  background:var(--grad);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:1.3rem;
+  margin-bottom:20px;
+  box-shadow:0 12px 30px rgba(168,85,247,.3);
+}
+.feature-card h3{font-family:'Unbounded',sans-serif;font-weight:600;font-size:1.2rem;margin-bottom:10px;letter-spacing:-.01em}
+.feature-card p{color:var(--muted);font-size:.92rem;line-height:1.55}
 
-        .hero p {
-            font-size: 1.35rem;
-            color: #6e6e73;
-            max-width: 700px;
-            margin: 0 auto 32px;
-            line-height: 1.4;
-        }
+/* ===== PROCESS ===== */
+.process-timeline{
+  margin-top:60px;position:relative;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;
+}
+.process-timeline::before{
+  content:'';position:absolute;top:40px;left:5%;right:5%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--line),transparent);
+}
+.process-step{
+  text-align:center;position:relative;padding:20px;
+}
+.step-num{
+  width:80px;height:80px;border-radius:50%;margin:0 auto 24px;
+  background:var(--bg-2);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Unbounded',sans-serif;font-weight:800;font-size:1.6rem;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+  position:relative;z-index:2;
+  transition:all .4s;
+}
+.step-num::before{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  background:var(--bg);z-index:-1;
+}
+.process-step:hover .step-num{
+  background:var(--grad);-webkit-background-clip:border-box;background-clip:border-box;color:#fff;
+  transform:scale(1.08);
+  box-shadow:0 0 40px rgba(168,85,247,.5);
+}
+.process-step h4{font-family:'Unbounded',sans-serif;font-weight:600;font-size:1.05rem;margin-bottom:8px}
+.process-step p{color:var(--muted);font-size:.88rem;line-height:1.5}
 
-        .hero-actions {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-bottom: 60px;
-        }
+/* ===== CTA ===== */
+.cta{padding:140px 32px}
+.cta-card{
+  max-width:1100px;margin:0 auto;
+  padding:80px 60px;border-radius:40px;
+  background:linear-gradient(135deg,rgba(168,85,247,.15),rgba(34,211,238,.08));
+  border:1px solid var(--line);
+  position:relative;overflow:hidden;
+  text-align:center;
+  backdrop-filter:blur(20px);
+}
+.cta-card::before{
+  content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
+  background:conic-gradient(from 0deg,transparent,rgba(168,85,247,.3),transparent 30%);
+  animation:rotate 12s linear infinite;
+}
+@keyframes rotate{to{transform:rotate(360deg)}}
+.cta-card > *{position:relative;z-index:2}
+.cta-card h2{
+  font-family:'Unbounded',sans-serif;font-weight:800;
+  font-size:clamp(2rem,5vw,4rem);line-height:1;letter-spacing:-.03em;
+  margin-bottom:20px;
+}
+.cta-card p{color:var(--muted);font-size:1.1rem;max-width:560px;margin:0 auto 40px}
 
-        /* Секция преимуществ (как Apple features grid) */
-        .features {
-            padding: 80px 0;
-            background-color: #fbfbfd;
-            border-radius: 32px;
-            margin: 20px 0;
-        }
+/* ===== FOOTER ===== */
+.footer{
+  padding:80px 32px 40px;
+  border-top:1px solid var(--line);
+  background:var(--bg-2);
+}
+.footer-grid{
+  max-width:1280px;margin:0 auto;
+  display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:60px;
+}
+.footer-brand .nav-logo{margin-bottom:18px}
+.footer-brand p{color:var(--muted);font-size:.9rem;line-height:1.55;max-width:320px}
+.footer h5{
+  font-family:'Unbounded',sans-serif;font-weight:600;font-size:.85rem;
+  letter-spacing:.08em;text-transform:uppercase;color:#fff;margin-bottom:18px;
+}
+.footer ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.footer a{color:var(--muted);text-decoration:none;font-size:.9rem;transition:color .3s}
+.footer a:hover{color:#fff}
+.socials{display:flex;gap:12px;margin-top:24px}
+.socials a{
+  width:40px;height:40px;border-radius:12px;
+  background:var(--glass);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+  transition:all .3s;
+}
+.socials a:hover{background:var(--grad);border-color:transparent;transform:translateY(-3px)}
+.footer-bottom{
+  max-width:1280px;margin:60px auto 0;padding-top:30px;
+  border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;
+  color:var(--muted);font-size:.82rem;
+}
 
-        .section-title {
-            font-size: 2.5rem;
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            text-align: center;
-            margin-bottom: 56px;
-            color: #1d1d1f;
-        }
+/* ===== MODAL ===== */
+.modal{
+  position:fixed;inset:0;z-index:9999;
+  background:rgba(5,5,10,.85);backdrop-filter:blur(20px);
+  display:none;align-items:center;justify-content:center;
+  padding:20px;
+}
+.modal.open{display:flex;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-box{
+  max-width:480px;width:100%;
+  background:linear-gradient(145deg,rgba(20,20,30,.9),rgba(10,10,15,.9));
+  border:1px solid var(--line);border-radius:28px;
+  padding:40px;position:relative;
+  backdrop-filter:blur(30px);
+  animation:popIn .4s cubic-bezier(.2,.9,.4,1.2);
+}
+@keyframes popIn{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-close{
+  position:absolute;top:18px;right:18px;
+  width:36px;height:36px;border-radius:50%;border:none;
+  background:rgba(255,255,255,.06);color:#fff;font-size:1.2rem;
+  cursor:none;transition:all .3s;
+}
+.modal-close:hover{background:rgba(255,255,255,.15);transform:rotate(90deg)}
+.modal h3{font-family:'Unbounded',sans-serif;font-size:1.6rem;margin-bottom:10px;letter-spacing:-.02em}
+.modal .sub{color:var(--muted);font-size:.92rem;margin-bottom:28px;line-height:1.5}
+.field{margin-bottom:16px}
+.field input{
+  width:100%;padding:14px 18px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--line);
+  border-radius:14px;color:#fff;font-size:.95rem;font-family:inherit;
+  transition:all .3s;
+}
+.field input:focus{outline:none;border-color:var(--accent);background:rgba(168,85,247,.05);box-shadow:0 0 0 4px rgba(168,85,247,.15)}
+.modal .btn-submit{
+  width:100%;padding:15px;margin-top:8px;
+  background:var(--grad);color:#fff;border:none;border-radius:14px;
+  font-weight:600;font-size:1rem;cursor:none;
+  transition:all .3s;
+}
+.modal .btn-submit:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(168,85,247,.45)}
+.modal-msg{text-align:center;margin-top:16px;font-size:.88rem;min-height:20px}
+.modal-ok{color:#22d3ee}
+.modal-err{color:#f472b6}
 
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 40px;
-        }
+/* ===== RESPONSIVE ===== */
+@media (max-width:900px){
+  .nav-links{display:none}
+  .burger{display:flex}
+  .about-grid{grid-template-columns:1fr;gap:40px}
+  .footer-grid{grid-template-columns:1fr 1fr;gap:40px}
+  .cta-card{padding:60px 30px}
+  section{padding:80px 20px}
+  .hero{padding:120px 20px 60px}
+  .hero-stats{grid-template-columns:1fr 1fr;padding:24px}
+}
+@media (max-width:600px){
+  .footer-grid{grid-template-columns:1fr}
+  .games-head{flex-direction:column;align-items:flex-start}
+  .navbar{padding:14px 20px}
+}
 
-        .feature-card {
-            text-align: center;
-            padding: 0 16px;
-        }
+/* Mobile menu */
+.mobile-menu{
+  position:fixed;inset:0;z-index:99;
+  background:rgba(5,5,10,.98);backdrop-filter:blur(30px);
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:28px;
+}
+.mobile-menu.open{display:flex;animation:fadeIn .3s}
+.mobile-menu a{color:#fff;text-decoration:none;font-family:'Unbounded',sans-serif;font-size:1.6rem;font-weight:600;letter-spacing:-.02em}
+.mobile-close{position:absolute;top:20px;right:20px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.08);color:#fff;border:none;font-size:1.3rem;cursor:none}
 
-        .feature-icon {
-            background: white;
-            width: 70px;
-            height: 70px;
-            border-radius: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 24px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.03);
-            font-size: 2rem;
-            color: #0071e3;
-        }
-
-        .feature-card h3 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-
-        .feature-card p {
-            color: #6e6e73;
-            font-size: 1rem;
-            line-height: 1.4;
-        }
-
-        /* Как это работает - стиль Apple с иконками */
-        .how-it-works {
-            padding: 80px 0;
-        }
-
-        .steps {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            gap: 24px;
-            margin-top: 40px;
-        }
-
-        .step {
-            flex: 1;
-            min-width: 200px;
-            background: #fafafc;
-            border-radius: 28px;
-            padding: 32px 24px;
-            text-align: center;
-            transition: all 0.2s;
-        }
-
-        .step-number {
-            font-weight: 700;
-            font-size: 2rem;
-            color: #0071e3;
-            margin-bottom: 16px;
-        }
-
-        .step h4 {
-            font-size: 1.3rem;
-            margin-bottom: 12px;
-        }
-
-        /* Новая секция: примеры работ (портфолио игр) */
-        .portfolio {
-            padding: 80px 0;
-            background-color: #ffffff;
-        }
-
-        .projects-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 40px;
-            margin-top: 20px;
-        }
-
-        .project-card {
-            background: #fbfbfd;
-            border-radius: 28px;
-            overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.02);
-            border: 1px solid #f0f0f2;
-        }
-
-        .project-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.12);
-            border-color: #e2e2e6;
-        }
-
-        .project-image {
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            background-color: #e9e9ef;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .project-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.4s ease;
-        }
-
-        .project-card:hover .project-image img {
-            transform: scale(1.02);
-        }
-
-        .project-info {
-            padding: 24px 24px 28px;
-            text-align: center;
-        }
-
-        .project-info h3 {
-            font-size: 1.6rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-            letter-spacing: -0.01em;
-        }
-
-        .project-info p {
-            color: #6e6e73;
-            font-size: 0.9rem;
-            margin-bottom: 20px;
-        }
-
-        .game-btn {
-            background-color: transparent;
-            border: 1.5px solid #0071e3;
-            color: #0071e3;
-            padding: 10px 24px;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-        }
-
-        .game-btn i {
-            font-size: 0.9rem;
-        }
-
-        .game-btn:hover {
-            background-color: #0071e3;
-            color: white;
-            transform: scale(1.02);
-        }
-
-        /* План обучения / цены (Apple style card) */
-        .pricing {
-            padding: 80px 0;
-            background-color: #ffffff;
-        }
-
-        .pricing-card {
-            max-width: 720px;
-            margin: 0 auto;
-            background: #fbfbfd;
-            border-radius: 32px;
-            padding: 48px 40px;
-            text-align: center;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.05);
-            border: 1px solid #e8e8ed;
-        }
-
-        .price {
-            font-size: 3.8rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            margin: 16px 0;
-        }
-
-        .price small {
-            font-size: 1.2rem;
-            font-weight: 400;
-            color: #6e6e73;
-        }
-
-        .pricing-features {
-            list-style: none;
-            margin: 32px 0;
-            text-align: left;
-            display: inline-block;
-        }
-
-        .pricing-features li {
-            margin: 16px 0;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 1rem;
-        }
-
-        .pricing-features i {
-            color: #0071e3;
-            width: 24px;
-        }
-
-        /* testimonial */
-        .testimonial {
-            background: #f5f5f7;
-            border-radius: 36px;
-            padding: 48px 32px;
-            margin: 40px 0 60px;
-            text-align: center;
-        }
-
-        .testimonial p {
-            font-size: 1.3rem;
-            font-style: normal;
-            font-weight: 500;
-            max-width: 700px;
-            margin: 0 auto 20px;
-            color: #1d1d1f;
-        }
-
-        .testimonial-author {
-            font-weight: 500;
-            color: #6e6e73;
-        }
-
-        /* CTA финал */
-        .cta-section {
-            background-color: #1d1d1f;
-            border-radius: 48px;
-            color: white;
-            padding: 72px 48px;
-            text-align: center;
-            margin: 60px 0 80px;
-        }
-
-        .cta-section h2 {
-            font-size: 2.6rem;
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            margin-bottom: 20px;
-        }
-
-        .cta-section .btn-primary {
-            background-color: white;
-            color: #1d1d1f;
-            margin-top: 24px;
-            padding: 12px 32px;
-            font-size: 1.1rem;
-        }
-
-        .cta-section .btn-primary:hover {
-            background-color: #f5f5f7;
-        }
-
-        /* footer */
-        .footer {
-            padding: 32px 0 48px;
-            border-top: 1px solid #d2d2d6;
-            color: #6e6e73;
-            font-size: 0.8rem;
-            text-align: center;
-        }
-
-        /* modal (форма регистрации в стиле Apple) */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            backdrop-filter: blur(8px);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .modal-content {
-            background: white;
-            max-width: 500px;
-            width: 90%;
-            border-radius: 32px;
-            padding: 32px;
-            text-align: center;
-            animation: fadeInUp 0.3s ease;
-            position: relative;
-        }
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        .modal-content h3 {
-            font-size: 1.8rem;
-            margin-bottom: 12px;
-        }
-        .modal .input-group {
-            margin: 20px 0;
-            text-align: left;
-        }
-        .modal input {
-            width: 100%;
-            padding: 14px 16px;
-            border-radius: 14px;
-            border: 1px solid #c6c6c8;
-            font-size: 1rem;
-            font-family: inherit;
-            transition: 0.2s;
-        }
-        .modal input:focus {
-            outline: none;
-            border-color: #0071e3;
-            box-shadow: 0 0 0 3px rgba(0,113,227,0.2);
-        }
-        .close-modal {
-            position: absolute;
-            top: 18px;
-            right: 24px;
-            font-size: 1.8rem;
-            cursor: pointer;
-            color: #8e8e93;
-        }
-        .success-message {
-            color: #28cd41;
-            font-weight: 500;
-            margin-top: 12px;
-        }
-
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2.5rem;
-            }
-            .hero p {
-                font-size: 1.1rem;
-            }
-            .section-title {
-                font-size: 2rem;
-            }
-            .nav-links {
-                gap: 18px;
-            }
-            .cta-section {
-                padding: 48px 24px;
-            }
-            .cta-section h2 {
-                font-size: 1.8rem;
-            }
-            .projects-grid {
-                gap: 24px;
-            }
-        }
-    </style>
+</style>
 </head>
 <body>
-    <!-- Navbar apple style -->
-    <nav class="navbar">
-        <div class="container nav-content">
-            <div class="logo">
-                <i class="fas fa-brain"></i> 
-                <span>NeoGame AI</span>
-            </div>
-            <div class="nav-links">
-                <a href="#features">Возможности</a>
-                <a href="#howitworks">Как устроено</a>
-                <a href="#portfolio">Портфолио</a>
-                <a href="#pricing">Обучение</a>
-                <a href="#" id="openModalBtn" class="btn-primary">Записаться</a>
-            </div>
-        </div>
-    </nav>
 
-    <main>
-        <!-- Hero section -->
-        <div class="container hero">
-            <div class="hero-badge">
-                <i class="fas fa-microchip"></i> Игровая революция с ИИ
-            </div>
-            <h1>Создавай игры с помощью нейросетей <br> без программирования</h1>
-            <p>Полный курс от идеи до релиза: генерация ассетов, кода, дизайна и сценариев через ChatGPT, Midjourney, Runway и другие AI-инструменты.</p>
-            <div class="hero-actions">
-                <a href="#" id="heroOpenModal" class="btn-primary">Начать обучение →</a>
-                <a href="#pricing" class="btn-outline">Узнать программу</a>
-            </div>
-        </div>
+<!-- PRELOADER -->
+<div class="preloader" id="preloader">
+  <div class="preloader-logo">MD ReLade</div>
+  <div class="preloader-bar"></div>
+</div>
 
-        <!-- Features grid -->
-        <div class="container features" id="features">
-            <h2 class="section-title">Почему обучение через AI — новый стандарт</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-robot"></i></div>
-                    <h3>Код на автопилоте</h3>
-                    <p>Генерируй игровые механики на Python, C# или GDScript с нейросетями — объясняем как правильно промптить.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-palette"></i></div>
-                    <h3>Арт и концепты за минуты</h3>
-                    <p>Midjourney, Stable Diffusion: создавай текстуры, персонажей, фоны и спрайты на профессиональном уровне.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-vr-cardboard"></i></div>
-                    <h3>Дизайн уровней + AI</h3>
-                    <p>Генерация дизайн-документов, сюжетных веток, баланса — используй LLM как со-геймдизайнера.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
-                    <h3>Монетизация и запуск</h3>
-                    <p>Упаковка игры, маркетинг с помощью AI, публикация в Steam / мобильные магазины.</p>
-                </div>
-            </div>
-        </div>
+<!-- CURSOR -->
+<div class="cursor-dot" id="cDot"></div>
+<div class="cursor-ring" id="cRing"></div>
 
-        <!-- Как это работает -->
-        <div class="container how-it-works" id="howitworks">
-            <h2 class="section-title">Курс «NeoGame»: 4 недели практики</h2>
-            <div class="steps">
-                <div class="step">
-                    <div class="step-number">01</div>
-                    <h4>Промпт-инжиниринг для игр</h4>
-                    <p>Осваиваешь систему составления запросов, получаешь работающие скрипты и концепты.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">02</div>
-                    <h4>Сборка прототипа</h4>
-                    <p>С нуля создаешь свою первую мини-игру: управление, механики, интерфейс — всё через AI.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">03</div>
-                    <h4>Геймдизайн + нейросети</h4>
-                    <p>Генерация уровней, баланса, сюжетов и диалогов. Как ускорить итерации в 10 раз.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">04</div>
-                    <h4>Защита проекта и профиль</h4>
-                    <p>Публикуешь игру в портфолио + получаешь сертификат и поддержку в комьюнити.</p>
-                </div>
-            </div>
-        </div>
+<!-- BG CANVAS -->
+<canvas id="bgCanvas"></canvas>
+<div class="noise"></div>
+<div class="glow-orb" id="glowA"></div>
+<div class="glow-orb b" id="glowB" style="top:20%;left:80%"></div>
 
-        <!-- НОВАЯ СЕКЦИЯ: ПРИМЕРЫ РАБОТ (3 картинки + 3 ссылки с кнопками "Играть") -->
-        <div class="container portfolio" id="portfolio">
-            <h2 class="section-title">Реальные проекты студентов <br><span style="font-size: 1rem; color:#6e6e73; font-weight: normal;">Создано с помощью нейросетей всего за 2 недели</span></h2>
-            <div class="projects-grid">
-                <!-- Проект 1: Dogs -->
-                <div class="project-card">
-                    <div class="project-image">
-                        <img src="3.png" alt="Игра Dogs — создано через AI" onerror="this.onerror=null; this.src='https://placehold.co/600x400/e8e8ed/8e8e93?text=Dogs+Game'">
-                    </div>
-                    <div class="project-info">
-                        <h3>Dogs: AI Runner</h3>
-                        <p>Аркадный раннер с милыми собаками, генерация уровней через нейросети.</p>
-                        <a href="https://vibecodbyenemy.github.io/Dogs/" target="_blank" class="game-btn">
-                            <i class="fas fa-gamepad"></i> Играть
-                        </a>
-                    </div>
-                </div>
-                <!-- Проект 2: Anime -->
-                <div class="project-card">
-                    <div class="project-image">
-                        <img src="2.png" alt="Игра Anime — нейросетевой визуальный стиль" onerror="this.onerror=null; this.src='https://placehold.co/600x400/e8e8ed/8e8e93?text=Anime+Adventure'">
-                    </div>
-                    <div class="project-info">
-                        <h3>Anime: Visual Novel</h3>
-                        <p>Интерактивная история с персонажами, сгенерированными с помощью Midjourney.</p>
-                        <a href="https://vibecodbyenemy.github.io/Anime/" target="_blank" class="game-btn">
-                            <i class="fas fa-gamepad"></i> Играть
-                        </a>
-                    </div>
-                </div>
-                <!-- Проект 3: Stack Attack -->
-                <div class="project-card">
-                    <div class="project-image">
-                        <img src="1.png" alt="Stack Attack — динамическая головоломка" onerror="this.onerror=null; this.src='https://placehold.co/600x400/e8e8ed/8e8e93?text=Stack+Attack'">
-                    </div>
-                    <div class="project-info">
-                        <h3>Stack Attack</h3>
-                        <p>Головоломка на ловкость и реакцию. Код на 90% написан ChatGPT.</p>
-                        <a href="https://vibecodbyenemy.github.io/stackattack/" target="_blank" class="game-btn">
-                            <i class="fas fa-gamepad"></i> Играть
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <p style="text-align: center; margin-top: 40px; color: #6e6e73; font-size: 0.9rem;">⭐ Реальные игровые проекты, созданные выпускниками NeoGame AI с нуля</p>
-        </div>
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+  <a href="#" class="nav-logo" data-hover>
+    <div class="nav-logo-icon"><i class="fas fa-bolt"></i></div>
+    <span><span class="md">MD</span><span class="re"> ReLade</span></span>
+  </a>
+  <div class="nav-links">
+    <a href="#about" data-hover>О студии</a>
+    <a href="#games" data-hover>Проекты</a>
+    <a href="#features" data-hover>Возможности</a>
+    <a href="#process" data-hover>Процесс</a>
+    <a href="#cta" class="nav-cta" data-hover><span>Связаться</span></a>
+  </div>
+  <button class="burger" id="burgerBtn" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
 
-        <!-- pricing block (тариф) -->
-        <div class="container pricing" id="pricing">
-            <div class="pricing-card">
-                <h3 style="font-weight: 600;">Стандарт — «AI Game Dev Pro»</h3>
-                <div class="price">$290 <small>или 5 платежей по $67</small></div>
-                <ul class="pricing-features">
-                    <li><i class="fas fa-check-circle"></i> 30+ часов видеоуроков и практических заданий</li>
-                    <li><i class="fas fa-check-circle"></i> Доступ к закрытому AI-комьюнити разработчиков</li>
-                    <li><i class="fas fa-check-circle"></i> Библиотека промптов для Unity, Godot, Unreal</li>
-                    <li><i class="fas fa-check-circle"></i> Еженедельные созвоны с экспертом по нейросетям</li>
-                    <li><i class="fas fa-check-circle"></i> Бессрочный доступ + все обновления курса</li>
-                </ul>
-                <a href="#" id="priceModalBtn" class="btn-primary" style="width: 100%;">Записаться на курс →</a>
-                <p style="margin-top: 16px; font-size: 0.85rem; color:#6e6e73;">Рассрочка без %, возврат в течение 14 дней</p>
-            </div>
-        </div>
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" id="mobileClose">✕</button>
+  <a href="#about" data-hover>О студии</a>
+  <a href="#games" data-hover>Проекты</a>
+  <a href="#features" data-hover>Возможности</a>
+  <a href="#process" data-hover>Процесс</a>
+  <a href="#cta" data-hover>Связаться</a>
+</div>
 
-        <!-- Testimonial -->
-        <div class="container">
-            <div class="testimonial">
-                <i class="fas fa-quote-left" style="font-size: 2rem; color: #c6c6c8; margin-bottom: 16px; display: block;"></i>
-                <p>“До курса я не написал ни строчки игрового кода. За 4 недели сделал раннер в стиле cyberpunk, весь контент создан через нейросети. Теперь планирую запустить в Steam!”</p>
-                <div class="testimonial-author">— Екатерина К., выпускница потока “NeoGame AI”</div>
-            </div>
-        </div>
-
-        <!-- CTA Block -->
-        <div class="container">
-            <div class="cta-section">
-                <h2>Готов начать создавать игры будущего?</h2>
-                <p style="font-size: 1.2rem; opacity: 0.9;">Присоединяйся к первым 500 студентам, которые осваивают геймдев с помощью AI.</p>
-                <a href="#" id="ctaModalBtn" class="btn-primary">Оставить заявку →</a>
-            </div>
-        </div>
-    </main>
-
-    <footer class="footer">
-        <div class="container">
-            <p>© 2025 NeoGame AI — обучение созданию игр с использованием нейросетей. Все права защищены.</p>
-            <p style="margin-top: 8px;"><i class="fas fa-envelope"></i> hello@neogame.ai  |  @neogame_ai</p>
-        </div>
-    </footer>
-
-    <!-- Modal форма захвата -->
-    <div id="registerModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" id="closeModalBtn">&times;</span>
-            <i class="fas fa-magic" style="font-size: 2.5rem; color: #0071e3; margin-bottom: 8px;"></i>
-            <h3>Начните обучение</h3>
-            <p>Оставьте контакты и получите бесплатный гайд «ТОП-50 промптов для игр» + скидку 15% на курс</p>
-            <form id="leadForm">
-                <div class="input-group">
-                    <input type="text" id="nameInput" placeholder="Ваше имя" required>
-                </div>
-                <div class="input-group">
-                    <input type="email" id="emailInput" placeholder="Email" required>
-                </div>
-                <div class="input-group">
-                    <input type="tel" id="phoneInput" placeholder="Телефон (необязательно)">
-                </div>
-                <button type="submit" class="btn-primary" style="width: 100%; padding: 14px;">Получить доступ <i class="fas fa-arrow-right"></i></button>
-                <div id="formSuccessMsg" class="success-message"></div>
-            </form>
-            <p style="font-size: 0.75rem; margin-top: 20px; color:#8e8e93;">Нажимая кнопку, вы соглашаетесь с условиями обработки данных.</p>
-        </div>
+<!-- HERO -->
+<header class="hero">
+  <div>
+    <div class="hero-eyebrow"><span class="dot"></span> Independent Game Studio · Est. 2024</div>
+    <h1 class="hero-title">
+      <span class="line">Создаём игры</span>
+      <span class="line grad">нового поколения</span>
+    </h1>
+    <p class="hero-sub">
+      MD ReLade — независимая студия разработки, где инженерия встречается с искусством. Мы проектируем цифровые миры, в которых технологии служат эмоциям, а код становится поэзией.
+    </p>
+    <div class="hero-actions">
+      <a href="#games" class="btn-hero primary" data-hover>Играть в проекты <i class="fas fa-arrow-right"></i></a>
+      <a href="#about" class="btn-hero ghost" data-hover><i class="fas fa-play"></i> О студии</a>
     </div>
+    <div class="hero-stats">
+      <div><div class="stat-num">3</div><div class="stat-label">релиза в продакшне</div></div>
+      <div><div class="stat-num">100%</div><div class="stat-label">собственная разработка</div></div>
+      <div><div class="stat-num">AI</div><div class="stat-label">усиленные пайплайны</div></div>
+      <div><div class="stat-num">24/7</div><div class="stat-label">онлайн-доступ</div></div>
+    </div>
+  </div>
+  <div class="scroll-indicator"><div class="mouse"></div><span>Scroll</span></div>
+</header>
 
-    <script>
-        // Модальное окно логика (как в Apple — просто и чисто)
-        const modal = document.getElementById('registerModal');
-        const openModalBtns = document.querySelectorAll('#openModalBtn, #heroOpenModal, #priceModalBtn, #ctaModalBtn');
-        const closeModalBtn = document.getElementById('closeModalBtn');
+<!-- ABOUT -->
+<section class="about" id="about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="reveal">
+        <div class="section-tag"><span class="dot"></span> О студии</div>
+        <h2 class="section-title">Независимая <span class="grad">студия-лаборатория</span> игр и экспериментов</h2>
+        <p class="section-desc">
+          MD ReLade — это небольшая команда энтузиастов, которая верит, что лучшие проекты рождаются на стыке дисциплин. Мы соединяем современный веб-стек, продуманный гейм-дизайн и возможности нейросетей, чтобы выпускать продукты, которыми гордимся.
+        </p>
+        <ul class="about-points">
+          <li data-hover>
+            <div class="ico"><i class="fas fa-code"></i></div>
+            <div><h4>Чистая инженерия</h4><p>Код без компромиссов: модульная архитектура, продуманные абстракции, производительность на всех устройствах.</p></div>
+          </li>
+          <li data-hover>
+            <div class="ico"><i class="fas fa-wand-magic-sparkles"></i></div>
+            <div><h4>AI как соавтор</h4><p>Используем генеративные модели для концептов, ассетов и прототипов — это сокращает цикл разработки в разы.</p></div>
+          </li>
+          <li data-hover>
+            <div class="ico"><i class="fas fa-palette"></i></div>
+            <div><h4>Визуальный язык</h4><p>Каждый проект имеет собственную айдентику: типографика, палитра, анимация — всё подчинено единой идее.</p></div>
+          </li>
+        </ul>
+      </div>
+      <div class="about-visual reveal" data-hover>
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        <div class="about-visual-text">MD·R</div>
+      </div>
+    </div>
+  </div>
+</section>
 
-        function openModal() {
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        }
-        function closeModal() {
-            modal.style.display = 'none';
-            document.body.style.overflow = '';
-            // Сброс сообщения и формы при закрытии
-            document.getElementById('leadForm').reset();
-            const msgDiv = document.getElementById('formSuccessMsg');
-            msgDiv.innerHTML = '';
-        }
+<!-- GAMES -->
+<section class="games" id="games">
+  <div class="container">
+    <div class="games-head reveal">
+      <div>
+        <div class="section-tag"><span class="dot"></span> Портфолио</div>
+        <h2 class="section-title">Наши <span class="grad">проекты</span></h2>
+        <p class="section-desc">Три релиза, каждый — законченная игровая вселенная. Все проекты доступны в браузере, без установки и регистрации.</p>
+      </div>
+      <a href="#cta" class="btn-hero ghost" data-hover>Все игры <i class="fas fa-arrow-right"></i></a>
+    </div>
+    <div class="games-grid">
 
-        openModalBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                openModal();
-            });
-        });
+      <!-- GAME 1: Dogs -->
+      <a href="https://ReladeVC.github.io/Dogs/" target="_blank" rel="noopener" class="game-card reveal" data-tilt data-hover>
+        <div class="game-media">
+          <span class="game-badge live"><i class="fas fa-circle" style="font-size:6px;vertical-align:middle;margin-right:5px"></i> Live</span>
+          <svg viewBox="0 0 400 250" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#f472b6"/>
+                <stop offset="100%" stop-color="#a855f7"/>
+              </linearGradient>
+              <linearGradient id="g1b" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#fbbf24"/>
+                <stop offset="100%" stop-color="#f59e0b"/>
+              </linearGradient>
+            </defs>
+            <rect width="400" height="250" fill="url(#g1)"/>
+            <!-- Neon casino grid -->
+            <g opacity=".25" stroke="#fff" stroke-width="1">
+              <line x1="0" y1="50" x2="400" y2="50"/>
+              <line x1="0" y1="100" x2="400" y2="100"/>
+              <line x1="0" y1="150" x2="400" y2="150"/>
+              <line x1="0" y1="200" x2="400" y2="200"/>
+              <line x1="80" y1="0" x2="80" y2="250"/>
+              <line x1="160" y1="0" x2="160" y2="250"/>
+              <line x1="240" y1="0" x2="240" y2="250"/>
+              <line x1="320" y1="0" x2="320" y2="250"/>
+            </g>
+            <!-- Slot reels -->
+            <g transform="translate(100,50)">
+              <rect width="60" height="150" rx="8" fill="rgba(0,0,0,.4)" stroke="#fff" stroke-width="2"/>
+              <circle cx="30" cy="75" r="20" fill="url(#g1b)"/>
+              <text x="30" y="82" text-anchor="middle" fill="#fff" font-family="Unbounded" font-weight="800" font-size="22">🎰</text>
+            </g>
+            <g transform="translate(170,50)">
+              <rect width="60" height="150" rx="8" fill="rgba(0,0,0,.4)" stroke="#fff" stroke-width="2"/>
+              <text x="30" y="90" text-anchor="middle" font-size="40">🐕</text>
+            </g>
+            <g transform="translate(240,50)">
+              <rect width="60" height="150" rx="8" fill="rgba(0,0,0,.4)" stroke="#fff" stroke-width="2"/>
+              <text x="30" y="90" text-anchor="middle" font-size="40">💎</text>
+            </g>
+            <!-- Jackpot text -->
+            <text x="200" y="235" text-anchor="middle" fill="#fff" font-family="Unbounded" font-weight="800" font-size="14" letter-spacing="4">JACKPOT · 1 000 ₽</text>
+          </svg>
+        </div>
+        <div class="game-body">
+          <div class="game-genre">Casual · Casino Arcade</div>
+          <h3 class="game-title">Dogs: Lucky Slots</h3>
+          <p class="game-desc">Аркадный слот с очаровательными персонажами-собаками. Бонусные раунды, фриспины с множителем ×2 и динамичная атмосфера ночного казино.</p>
+          <span class="game-play"><span>Запустить игру</span><i class="fas fa-arrow-right"></i></span>
+        </div>
+      </a>
 
-        closeModalBtn.addEventListener('click', closeModal);
-        window.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal();
-        });
+      <!-- GAME 2: Anime -->
+      <a href="https://ReladeVC.github.io/Anime/" target="_blank" rel="noopener" class="game-card reveal" data-tilt data-hover>
+        <div class="game-media">
+          <span class="game-badge ai"><i class="fas fa-sparkles" style="margin-right:5px"></i> AI Art</span>
+          <svg viewBox="0 0 400 250" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#1e1b4b"/>
+                <stop offset="50%" stop-color="#7c3aed"/>
+                <stop offset="100%" stop-color="#ec4899"/>
+              </linearGradient>
+              <radialGradient id="moon">
+                <stop offset="0%" stop-color="#fef3c7"/>
+                <stop offset="100%" stop-color="#f59e0b"/>
+              </radialGradient>
+            </defs>
+            <rect width="400" height="250" fill="url(#g2)"/>
+            <!-- Moon -->
+            <circle cx="310" cy="70" r="38" fill="url(#moon)"/>
+            <circle cx="298" cy="62" r="38" fill="#1e1b4b" opacity=".6"/>
+            <!-- Stars -->
+            <g fill="#fff" opacity=".8">
+              <circle cx="60" cy="40" r="1.5"/><circle cx="120" cy="80" r="1"/>
+              <circle cx="180" cy="30" r="1.5"/><circle cx="240" cy="100" r="1"/>
+              <circle cx="80" cy="120" r="1"/><circle cx="350" cy="140" r="1.5"/>
+              <circle cx="40" cy="180" r="1"/><circle cx="280" cy="180" r="1.5"/>
+            </g>
+            <!-- Torii silhouette -->
+            <g transform="translate(80,130)" fill="#0f0a1f">
+              <rect x="0" y="0" width="8" height="100"/>
+              <rect x="80" y="0" width="8" height="100"/>
+              <rect x="-10" y="-5" width="108" height="8"/>
+              <rect x="-6" y="-18" width="100" height="6"/>
+            </g>
+            <!-- Character silhouette (anime girl) -->
+            <g transform="translate(220,95)" fill="#0f0a1f">
+              <!-- Hair -->
+              <path d="M 0 30 Q -5 10 10 0 Q 25 -8 40 0 Q 55 10 50 30 Q 55 50 50 70 L 45 110 L 35 95 L 25 110 L 15 95 L 5 110 L 0 70 Z"/>
+              <!-- Body -->
+              <ellipse cx="25" cy="40" rx="14" ry="16" fill="#fde4cf"/>
+              <!-- Eyes -->
+              <ellipse cx="19" cy="38" rx="2" ry="3" fill="#7c3aed"/>
+              <ellipse cx="31" cy="38" rx="2" ry="3" fill="#7c3aed"/>
+              <!-- Kimono -->
+              <path d="M 11 55 L 39 55 L 45 120 L 5 120 Z" fill="#ec4899"/>
+              <path d="M 15 70 L 35 70 L 38 90 L 12 90 Z" fill="#a855f7"/>
+            </g>
+            <!-- Title -->
+            <text x="200" y="235" text-anchor="middle" fill="#fef3c7" font-family="Unbounded" font-weight="800" font-size="16" letter-spacing="6">月姫 · TSUKIHIME</text>
+          </svg>
+        </div>
+        <div class="game-body">
+          <div class="game-genre">Interactive · Visual Novel</div>
+          <h3 class="game-title">Цукихэмэ</h3>
+          <p class="game-desc">Медитативная интерактивная новелла в эстетике японской ночи. Атмосферный саундтрек, сменяющаяся погода и ветвящийся сюжет, вдохновлённый аниме-классикой.</p>
+          <span class="game-play"><span>Запустить игру</span><i class="fas fa-arrow-right"></i></span>
+        </div>
+      </a>
 
-        // Обработка отправки формы (имитация продажи / регистрации)
-        const leadForm = document.getElementById('leadForm');
-        const successMsgDiv = document.getElementById('formSuccessMsg');
+      <!-- GAME 3: Stack Attack -->
+      <a href="https://ReladeVC.github.io/stackattack" target="_blank" rel="noopener" class="game-card reveal" data-tilt data-hover>
+        <div class="game-media">
+          <span class="game-badge live"><i class="fas fa-circle" style="font-size:6px;vertical-align:middle;margin-right:5px"></i> Live</span>
+          <svg viewBox="0 0 400 250" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="g3" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#0f172a"/>
+                <stop offset="100%" stop-color="#1e293b"/>
+              </linearGradient>
+              <linearGradient id="box" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#fbbf24"/>
+                <stop offset="100%" stop-color="#d97706"/>
+              </linearGradient>
+            </defs>
+            <rect width="400" height="250" fill="url(#g3)"/>
+            <!-- Warehouse grid floor -->
+            <g opacity=".3" stroke="#475569" stroke-width="1">
+              <line x1="0" y1="220" x2="400" y2="220"/>
+              <line x1="0" y1="230" x2="400" y2="230"/>
+              <line x1="0" y1="240" x2="400" y2="240"/>
+            </g>
+            <!-- Stacked boxes -->
+            <g transform="translate(170,0)">
+              <rect x="0" y="190" width="60" height="40" fill="url(#box)" stroke="#78350f" stroke-width="1.5"/>
+              <rect x="-2" y="150" width="60" height="40" fill="url(#box)" stroke="#78350f" stroke-width="1.5"/>
+              <rect x="4" y="110" width="60" height="40" fill="url(#box)" stroke="#78350f" stroke-width="1.5"/>
+              <rect x="-1" y="70" width="60" height="40" fill="url(#box)" stroke="#78350f" stroke-width="1.5"/>
+              <rect x="2" y="30" width="60" height="40" fill="url(#box)" stroke="#78350f" stroke-width="1.5" opacity=".6"/>
+              <!-- falling box -->
+              <rect x="15" y="-10" width="30" height="30" fill="url(#box)" stroke="#78350f" stroke-width="1.5">
+                <animate attributeName="y" values="-10;20;-10" dur="2s" repeatCount="indefinite"/>
+              </rect>
+            </g>
+            <!-- Worker silhouette -->
+            <g transform="translate(90,150)" fill="#64748b">
+              <circle cx="15" cy="10" r="8"/>
+              <rect x="8" y="18" width="14" height="25"/>
+              <rect x="5" y="43" width="6" height="22"/>
+              <rect x="19" y="43" width="6" height="22"/>
+              <!-- Carrying box -->
+              <rect x="22" y="18" width="20" height="18" fill="url(#box)" stroke="#78350f"/>
+            </g>
+            <!-- Arrow -->
+            <g transform="translate(280,180)" opacity=".7">
+              <path d="M 0 10 L 30 10 L 25 5 M 30 10 L 25 15" stroke="#22d3ee" stroke-width="2" fill="none"/>
+            </g>
+            <!-- HUD -->
+            <text x="20" y="30" fill="#22d3ee" font-family="Unbounded" font-weight="700" font-size="12">SCORE</text>
+            <text x="20" y="52" fill="#fff" font-family="Unbounded" font-weight="800" font-size="22">370</text>
+            <text x="320" y="30" fill="#f472b6" font-family="Unbounded" font-weight="700" font-size="12">SPEED</text>
+            <text x="320" y="52" fill="#fff" font-family="Unbounded" font-weight="800" font-size="22">50</text>
+          </svg>
+        </div>
+        <div class="game-body">
+          <div class="game-genre">Arcade · Reflex</div>
+          <h3 class="game-title">Складской грузчик</h3>
+          <p class="game-desc">Динамичная аркада на реакцию и чувство ритма. Укладывайте падающие ящики в стабильную колонну, избегая смещений. Каждый уровень — быстрее и точнее.</p>
+          <span class="game-play"><span>Запустить игру</span><i class="fas fa-arrow-right"></i></span>
+        </div>
+      </a>
 
-        leadForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const name = document.getElementById('nameInput').value.trim();
-            const email = document.getElementById('emailInput').value.trim();
-            if (!name || !email) {
-                successMsgDiv.innerHTML = '⚠️ Пожалуйста, укажите имя и email.';
-                successMsgDiv.style.color = '#ff3b30';
-                setTimeout(() => {
-                    successMsgDiv.innerHTML = '';
-                }, 2500);
-                return;
-            }
-            // имитация отправки -> сохранение лида
-            console.log(`Lead: ${name}, ${email}, телефон: ${document.getElementById('phoneInput').value}`);
-            successMsgDiv.innerHTML = '✅ Заявка принята! Скоро с вами свяжется менеджер.';
-            successMsgDiv.style.color = '#28cd41';
-            leadForm.reset();
-            setTimeout(() => {
-                closeModal();
-            }, 2000);
-        });
+    </div>
+  </div>
+</section>
 
-        // Плавный скролл для навигации (iOS-стиль)
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            if(anchor.getAttribute('href') !== '#') {
-                anchor.addEventListener('click', function(e) {
-                    const targetId = this.getAttribute('href');
-                    if(targetId === "#" || targetId === "") return;
-                    const targetElem = document.querySelector(targetId);
-                    if(targetElem) {
-                        e.preventDefault();
-                        targetElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                });
-            }
-        });
-    </script>
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="reveal" style="text-align:center">
+      <div class="section-tag"><span class="dot"></span> Подход</div>
+      <h2 class="section-title" style="max-width:800px;margin:0 auto 20px">Что отличает <span class="grad">MD ReLade</span> от других</h2>
+      <p class="section-desc" style="margin:0 auto">Мы не фабрика контента. Мы лаборатория, где каждый проект — исследование возможностей современных технологий.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card reveal" data-hover>
+        <div class="feature-ico"><i class="fas fa-bolt"></i></div>
+        <h3>Быстрые итерации</h3>
+        <p>От идеи до работающего прототипа за дни, а не месяцы. CI/CD, автоматизация, модульная архитектура.</p>
+      </div>
+      <div class="feature-card reveal" data-hover>
+        <div class="feature-ico"><i class="fas fa-brain"></i></div>
+        <h3>AI-пайплайн</h3>
+        <p>Интегрируем LLM и генеративные модели в реальный рабочий процесс: концепты, ассеты, баланс.</p>
+      </div>
+      <div class="feature-card reveal" data-hover>
+        <div class="feature-ico"><i class="fas fa-pen-ruler"></i></div>
+        <h3>Дизайн-система</h3>
+        <p>Каждый продукт получает продуманную визуальную идентичность: шрифты, палитра, motion-язык.</p>
+      </div>
+      <div class="feature-card reveal" data-hover>
+        <div class="feature-ico"><i class="fas fa-mobile-screen"></i></div>
+        <h3>Любое устройство</h3>
+        <p>От смартфона до 4K-монитора — адаптивность и производительность на первом месте.</p>
+      </div>
+      <div class="feature-card reveal" data-hover>
+        <div class="feature-ico"><i class="fas fa-shield-halved"></i></div>
+        <h3>Чистый код</h3>
+        <p>Типизация, тесты, документация. Проект живёт долго после релиза.</p>
+      </div>
+      <div class="feature-card reveal" data-hover>
+        <div class="feature-ico"><i class="fas fa-rocket"></i></div>
+        <h3>Публичный запуск</h3>
+        <p>Все проекты доступны онлайн. Никаких скрытых установок — заходите и играйте.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section id="process">
+  <div class="container">
+    <div class="reveal" style="text-align:center">
+      <div class="section-tag"><span class="dot"></span> Процесс</div>
+      <h2 class="section-title">Как мы <span class="grad">создаём</span> проекты</h2>
+      <p class="section-desc" style="margin:0 auto">Четыре этапа — от первой идеи до релиза. Каждый этап прозрачен, измерим и документирован.</p>
+    </div>
+    <div class="process-timeline">
+      <div class="process-step reveal" data-hover>
+        <div class="step-num">01</div>
+        <h4>Исследование</h4>
+        <p>Глубоко погружаемся в жанр, референсы и аудиторию. Формулируем гипотезу.</p>
+      </div>
+      <div class="process-step reveal" data-hover>
+        <div class="step-num">02</div>
+        <h4>Прототип</h4>
+        <p>Собираем минимально играбельную версию за несколько дней и тестируем механики.</p>
+      </div>
+      <div class="process-step reveal" data-hover>
+        <div class="step-num">03</div>
+        <h4>Полировка</h4>
+        <p>Доводим графику, анимации, звук и баланс до уровня, которым гордимся.</p>
+      </div>
+      <div class="process-step reveal" data-hover>
+        <div class="step-num">04</div>
+        <h4>Релиз</h4>
+        <p>Публикуем проект, собираем обратную связь и продолжаем поддерживать.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" id="cta">
+  <div class="cta-card reveal">
+    <div class="section-tag"><span class="dot"></span> Давайте работать вместе</div>
+    <h2>Есть идея? <span style="background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent">Сделаем вместе.</span></h2>
+    <p>Мы открыты к коллаборациям: от совместных экспериментальных проектов до коммерческих заказов. Расскажите о вашей идее — обсудим за чашкой кофе (виртуального или настоящего).</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+      <button class="btn-hero primary" id="openModal" data-hover>Написать студии <i class="fas fa-paper-plane"></i></button>
+      <a href="mailto:hello@mdrelade.studio" class="btn-hero ghost" data-hover><i class="fas fa-envelope"></i> hello@mdrelade.studio</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a href="#" class="nav-logo" data-hover>
+        <div class="nav-logo-icon"><i class="fas fa-bolt"></i></div>
+        <span><span class="md">MD</span><span class="re"> ReLade</span></span>
+      </a>
+      <p>Независимая игровая студия. Создаём цифровые миры, в которых технологии служат эмоциям.</p>
+      <div class="socials">
+        <a href="#" data-hover aria-label="GitHub"><i class="fab fa-github"></i></a>
+        <a href="#" data-hover aria-label="Telegram"><i class="fab fa-telegram"></i></a>
+        <a href="#" data-hover aria-label="Twitter"><i class="fab fa-x-twitter"></i></a>
+        <a href="#" data-hover aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+      </div>
+    </div>
+    <div>
+      <h5>Проекты</h5>
+      <ul>
+        <li><a href="https://ReladeVC.github.io/Dogs/" target="_blank" data-hover>Dogs: Lucky Slots</a></li>
+        <li><a href="https://ReladeVC.github.io/Anime/" target="_blank" data-hover>Цукихэмэ</a></li>
+        <li><a href="https://ReladeVC.github.io/stackattack" target="_blank" data-hover>Складской грузчик</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>Студия</h5>
+      <ul>
+        <li><a href="#about" data-hover>О нас</a></li>
+        <li><a href="#features" data-hover>Подход</a></li>
+        <li><a href="#process" data-hover>Процесс</a></li>
+        <li><a href="#cta" data-hover>Контакты</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>Контакты</h5>
+      <ul>
+        <li><a href="mailto:hello@mdrelade.studio" data-hover>hello@mdrelade.studio</a></li>
+        <li><a href="#" data-hover>Telegram: @mdrelade</a></li>
+        <li><a href="#" data-hover>GitHub: ReladeVC</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div>© 2024–2026 MD ReLade Studio. Все права защищены.</div>
+    <div>Сделано с <i class="fas fa-heart" style="color:#f472b6"></i> и нейросетями</div>
+  </div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <button class="modal-close" id="modalClose" data-hover>✕</button>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <div class="nav-logo-icon" style="width:44px;height:44px"><i class="fas fa-envelope-open-text"></i></div>
+      <h3>Напишите нам</h3>
+    </div>
+    <p class="sub">Оставьте контакты — мы ответим в течение 24 часов и обсудим вашу идею.</p>
+    <form id="leadForm">
+      <div class="field"><input type="text" id="fName" placeholder="Как к вам обращаться" required></div>
+      <div class="field"><input type="email" id="fEmail" placeholder="Email" required></div>
+      <div class="field"><input type="text" id="fMsg" placeholder="Коротко о проекте"></div>
+      <button type="submit" class="btn-submit" data-hover>Отправить заявку <i class="fas fa-arrow-right"></i></button>
+      <div class="modal-msg" id="modalMsg"></div>
+    </form>
+  </div>
+</div>
+
+<script>
+/* ====== PRELOADER ====== */
+window.addEventListener('load',()=>{
+  setTimeout(()=>document.getElementById('preloader').classList.add('done'),1600);
+});
+
+/* ====== CUSTOM CURSOR ====== */
+const dot=document.getElementById('cDot'),ring=document.getElementById('cRing');
+let mx=0,my=0,rx=0,ry=0;
+window.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  dot.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;
+});
+function animateRing(){
+  rx+=(mx-rx)*.15;ry+=(my-ry)*.15;
+  ring.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`;
+  requestAnimationFrame(animateRing);
+}
+animateRing();
+document.querySelectorAll('[data-hover]').forEach(el=>{
+  el.addEventListener('mouseenter',()=>ring.classList.add('hover'));
+  el.addEventListener('mouseleave',()=>ring.classList.remove('hover'));
+});
+
+/* ====== GLOW ORB FOLLOW MOUSE ====== */
+const glowA=document.getElementById('glowA'),glowB=document.getElementById('glowB');
+document.addEventListener('mousemove',e=>{
+  glowA.style.transform=`translate(${e.clientX}px,${e.clientY}px) translate(-50%,-50%)`;
+});
+let gx=window.innerWidth*.8,gy=window.innerHeight*.2;
+document.addEventListener('mousemove',e=>{
+  gx+=(e.clientX-gx)*.02;gy+=(e.clientY-gy)*.02;
+  glowB.style.transform=`translate(${gx}px,${gy}px) translate(-50%,-50%)`;
+});
+
+/* ====== BG CANVAS — PARTICLES ====== */
+const canvas=document.getElementById('bgCanvas'),ctx=canvas.getContext('2d');
+let particles=[];
+function resize(){canvas.width=innerWidth;canvas.height=innerHeight}
+resize();window.addEventListener('resize',resize);
+class P{
+  constructor(){
+    this.x=Math.random()*canvas.width;
+    this.y=Math.random()*canvas.height;
+    this.vx=(Math.random()-.5)*.3;
+    this.vy=(Math.random()-.5)*.3;
+    this.r=Math.random()*1.5+.3;
+    this.c=['#a855f7','#22d3ee','#f472b6','#fff'][Math.floor(Math.random()*4)];
+  }
+  update(){
+    this.x+=this.vx;this.y+=this.vy;
+    if(this.x<0||this.x>canvas.width)this.vx*=-1;
+    if(this.y<0||this.y>canvas.height)this.vy*=-1;
+  }
+  draw(){
+    ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+    ctx.fillStyle=this.c;ctx.fill();
+  }
+}
+for(let i=0;i<80;i++)particles.push(new P());
+function loop(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles.forEach(p=>{p.update();p.draw()});
+  // draw lines
+  for(let i=0;i<particles.length;i++){
+    for(let j=i+1;j<particles.length;j++){
+      const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y;
+      const d=Math.sqrt(dx*dx+dy*dy);
+      if(d<130){
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x,particles[i].y);
+        ctx.lineTo(particles[j].x,particles[j].y);
+        ctx.strokeStyle=`rgba(168,85,247,${.12*(1-d/130)})`;
+        ctx.lineWidth=.6;ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(loop);
+}
+loop();
+
+/* ====== NAVBAR SCROLL ====== */
+const navbar=document.getElementById('navbar');
+window.addEventListener('scroll',()=>{
+  if(window.scrollY>30)navbar.classList.add('scrolled');
+  else navbar.classList.remove('scrolled');
+});
+
+/* ====== MOBILE MENU ====== */
+const burger=document.getElementById('burgerBtn'),mobileMenu=document.getElementById('mobileMenu'),mobileClose=document.getElementById('mobileClose');
+burger.addEventListener('click',()=>mobileMenu.classList.add('open'));
+mobileClose.addEventListener('click',()=>mobileMenu.classList.remove('open'));
+mobileMenu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>mobileMenu.classList.remove('open')));
+
+/* ====== REVEAL ON SCROLL ====== */
+const io=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.classList.add('in');
+      io.unobserve(e.target);
+    }
+  });
+},{threshold:.15});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+/* ====== TILT 3D on GAME CARDS ====== */
+document.querySelectorAll('[data-tilt]').forEach(card=>{
+  card.addEventListener('mousemove',e=>{
+    const r=card.getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width-.5;
+    const y=(e.clientY-r.top)/r.height-.5;
+    card.style.transform=`perspective(1000px) rotateY(${x*8}deg) rotateX(${-y*8}deg) translateY(-8px)`;
+  });
+  card.addEventListener('mouseleave',()=>{
+    card.style.transform='';
+  });
+});
+
+/* ====== SMOOTH ANCHOR ====== */
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    const id=a.getAttribute('href');
+    if(id.length>1){
+      const t=document.querySelector(id);
+      if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'})}
+    }
+  });
+});
+
+/* ====== MODAL ====== */
+const modal=document.getElementById('modal'),msg=document.getElementById('modalMsg');
+document.getElementById('openModal').addEventListener('click',()=>modal.classList.add('open'));
+document.getElementById('modalClose').addEventListener('click',()=>modal.classList.remove('open'));
+modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('open')});
+document.getElementById('leadForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const n=document.getElementById('fName').value.trim();
+  const em=document.getElementById('fEmail').value.trim();
+  if(!n||!em){msg.textContent='Заполните имя и email';msg.className='modal-msg modal-err';return}
+  msg.textContent='✓ Заявка отправлена! Свяжемся в течение 24 часов.';
+  msg.className='modal-msg modal-ok';
+  e.target.reset();
+  setTimeout(()=>{modal.classList.remove('open');msg.textContent=''},2500);
+});
+
+/* ====== PARALLAX ON HERO STATS ====== */
+window.addEventListener('scroll',()=>{
+  const y=window.scrollY;
+  if(y<800){
+    document.querySelector('.hero-stats').style.transform=`translateY(${y*.08}px)`;
+  }
+});
+</script>
 </body>
 </html>
